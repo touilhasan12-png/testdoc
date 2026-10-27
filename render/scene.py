@@ -84,8 +84,10 @@ def build_character(prefix, hip_xyz, shirt, pants, hair, skin, shoe):
     hip = pivot(prefix + "_hip", (x, y, z))
 
     # الجذع والرأس (يتبعان الورك)
-    torso = box(prefix + "_torso", (0.34, 0.26, 0.62), (x, y, z + 0.62), shirt)
+    torso = box(prefix + "_torso", (0.34, 0.26, 0.7), (x, y, z + 0.6), shirt)
     attach(torso, hip)
+    pelvis = box(prefix + "_pelvis", (0.36, 0.28, 0.26), (x, y, z + 0.02), pants)
+    attach(pelvis, hip)
     neck = limb(prefix + "_neck", (x, y, z + 0.92), (x + 0.02, y, z + 1.05), 0.07, skin)
     attach(neck, hip)
     head = sphere(prefix + "_head", 0.27, (x + 0.02, y, z + 1.35), skin)
