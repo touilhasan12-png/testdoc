@@ -6,6 +6,9 @@ on:
       frames:
         description: "number of frames"
         default: "240"
+      script:
+        description: "blender script path"
+        default: "render/scene.py"
   push:
     paths:
       - "render/**"
@@ -25,7 +28,7 @@ jobs:
           blender --version
 
       - name: Render frames with Blender
-        run: xvfb-run -a blender -b -P render/scene.py -- --out "$GITHUB_WORKSPACE/frames" --frames ${{ inputs.frames || '240' }}
+        run: xvfb-run -a blender -b -P ${{ inputs.script || 'render/scene.py' }} -- --out "$GITHUB_WORKSPACE/frames" --frames ${{ inputs.frames || '240' }}
 
       - name: Encode video
         run: |
