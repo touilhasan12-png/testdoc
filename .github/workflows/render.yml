@@ -17,11 +17,11 @@ jobs:
       - name: Install Blender and ffmpeg
         run: |
           sudo apt-get update
-          sudo apt-get install -y blender ffmpeg libxi6 libxkbcommon0 libsm6 libxrender1 libgl1
+          sudo apt-get install -y blender ffmpeg xvfb libegl1 libegl-mesa0 libgl1 libgl1-mesa-dri libglu1-mesa libxi6 libxkbcommon0 libxkbcommon-x11-0 libsm6 libxrender1 libxext6 libx11-6 libxfixes3 libxxf86vm1 libdbus-1-3 libsndfile1
           blender --version
 
       - name: Render frames with Blender
-        run: blender -b -P render/scene.py -- --out "$GITHUB_WORKSPACE/frames"
+        run: xvfb-run -a blender -b -P render/scene.py -- --out "$GITHUB_WORKSPACE/frames"
 
       - name: Encode video
         run: |
