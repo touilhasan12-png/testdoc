@@ -7,7 +7,7 @@ argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 OUT = argv[argv.index("--out") + 1] if "--out" in argv else "frames"
 os.makedirs(OUT, exist_ok=True)
 
-FRAMES = 240          # 10 ثوانٍ عند 24 إطاراً في الثانية
+FRAMES = int(argv[argv.index("--frames") + 1]) if "--frames" in argv else 240   # 10 ثوانٍ عند 24 إطاراً
 FPS = 24
 WALK_RATE = 0.112     # طور المشي لكل إطار
 LEG_AMP = 0.35        # زاوية الساق (راديان)
@@ -25,10 +25,13 @@ scene.render.image_settings.file_format = "PNG"
 # محرك خفيف وسريع مناسب للرسم المسطح الكرتوني
 scene.render.engine = "BLENDER_WORKBENCH"
 sh = scene.display.shading
-sh.light = "STUDIO"
+sh.light = "FLAT"           # إضاءة مسطحة لمظهر الرسم الكرتوني
 sh.color_type = "OBJECT"
-sh.show_shadows = True
-sh.shadow_intensity = 0.35
+sh.show_shadows = False
+sh.show_cavity = False
+# خطوط سوداء حول كل شكل (مظهر الرسم بالخطوط)
+sh.show_object_outline = True
+sh.object_outline_color = (0.0, 0.0, 0.0)
 sh.background_type = "WORLD"
 scene.render.film_transparent = False
 scene.display.render_aa = "8"

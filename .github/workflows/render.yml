@@ -2,6 +2,10 @@ name: render-video
 
 on:
   workflow_dispatch:
+    inputs:
+      frames:
+        description: "number of frames"
+        default: "240"
   push:
     paths:
       - "render/**"
@@ -21,7 +25,7 @@ jobs:
           blender --version
 
       - name: Render frames with Blender
-        run: xvfb-run -a blender -b -P render/scene.py -- --out "$GITHUB_WORKSPACE/frames"
+        run: xvfb-run -a blender -b -P render/scene.py -- --out "$GITHUB_WORKSPACE/frames" --frames ${{ inputs.frames || '240' }}
 
       - name: Encode video
         run: |
