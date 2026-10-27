@@ -1,0 +1,37 @@
+name: render-video
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "render/**"
+      - ".github/workflows/render.yml"
+
+jobs:
+  render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Blender and ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender ffmpeg libxi6 libxkbcommon0 libsm6 libxrender1 libgl1
+          blender --version
+
+      - name: Render frames with Blender
+        run: blender -b -P render/scene.py -- --out "$GITHUB_WORKSPACE/frames"
+
+      - name: Encode video
+        run: |
+          ffmpeg -y -framerate 24 -i frames/frame_%04d.png -c:v libx264 -pix_fmt yuv420p -crf 20 walk_scene.mp4
+          ls -la walk_scene.mp4
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: walk_scene
+          path: |
+            walk_scene.mp4
+            frames/frame_0001.png
+            frames/frame_0120.png
