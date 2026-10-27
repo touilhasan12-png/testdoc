@@ -59,8 +59,17 @@ def make_peep(path, name, x):
     bpy.context.view_layer.update()
     bb = [obj.matrix_world @ Vector(c) for c in obj.bound_box]
     minz = min(v.z for v in bb)
-    obj.location = (x, 0, -minz)
     obj.rotation_euler = (math.radians(90), 0, 0)
+    bpy.context.view_layer.update()
+    # إعادة الضبط بعد الدوران: الارتفاع الفعلي على محور Z هو 2.4 وحدة والقدمان على الأرض
+    bb = [obj.matrix_world @ Vector(c) for c in obj.bound_box]
+    h2 = max(v.z for v in bb) - min(v.z for v in bb)
+    k = 2.4 / h2
+    obj.scale = (obj.scale[0] * k, obj.scale[1] * k, obj.scale[2] * k)
+    bpy.context.view_layer.update()
+    bb = [obj.matrix_world @ Vector(c) for c in obj.bound_box]
+    cy = (max(v.y for v in bb) + min(v.y for v in bb)) / 2
+    obj.location = (x, -cy, -min(v.z for v in bb))
     bpy.context.view_layer.update()
     bb = [obj.matrix_world @ Vector(c) for c in obj.bound_box]
     print(name, "bbox z:", min(v.z for v in bb), max(v.z for v in bb), "y:", min(v.y for v in bb), max(v.y for v in bb))
