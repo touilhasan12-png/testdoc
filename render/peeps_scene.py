@@ -69,10 +69,11 @@ def make_peep(path, name, x):
     bpy.context.view_layer.update()
     bb = [obj.matrix_world @ Vector(c) for c in obj.bound_box]
     cy = (max(v.y for v in bb) + min(v.y for v in bb)) / 2
-    obj.location = (x, -cy, -min(v.z for v in bb))
+    cx = (max(v.x for v in bb) + min(v.x for v in bb)) / 2
+    obj.location = (x - cx, -cy, -min(v.z for v in bb))
     bpy.context.view_layer.update()
     bb = [obj.matrix_world @ Vector(c) for c in obj.bound_box]
-    print(name, "bbox z:", min(v.z for v in bb), max(v.z for v in bb), "y:", min(v.y for v in bb), max(v.y for v in bb))
+    print(name, "bbox x:", min(v.x for v in bb), max(v.x for v in bb), "bbox z:", min(v.z for v in bb), max(v.z for v in bb), "y:", min(v.y for v in bb), max(v.y for v in bb))
     obj.color = (1, 1, 1, 1)
     return obj
 
