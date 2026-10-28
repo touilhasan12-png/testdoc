@@ -60,7 +60,7 @@ export const Overlay:React.FC<{privateAssets:boolean}>=({privateAssets})=>{
   {privateAssets&&b?.secondImage?<div style={{position:'absolute',bottom:'17.5%',left:65*sc,width:'26%',height:'48%',opacity:fade,display:'flex',alignItems:'end',justifyContent:'center'}}>
     <Img src={staticFile(`private/${b.secondImage}.png`)} style={{maxHeight:'100%',maxWidth:'100%',objectFit:'contain',filter:'drop-shadow(0 8px 12px rgba(0,0,0,.62))'}}/>
   </div>:null}
-  {b?.flag?<div style={{position:'absolute',left:'55%',top:'38%',opacity:fade,filter:'drop-shadow(0 3px 6px #06131a)',transform:`translateY(${(1-fade)*10*sc}px)`}}><Flag kind={b.flag} size={120*sc}/></div>:null}
+  {b?.flag?<div style={{position:'absolute',left:b.title==='SANLÚCAR'?'61%':'55%',top:b.title==='SANLÚCAR'?'31%':'38%',opacity:fade,filter:'drop-shadow(0 3px 6px #06131a)',transform:`translateY(${(1-fade)*10*sc}px)`}}><Flag kind={b.flag} size={120*sc}/></div>:null}
   {b?.feature?<StorySymbol kind={b.feature} time={t} start={b.from} fade={fade} scale={sc}/>:null}
   <Captions enabled={privateAssets} time={t} scale={sc}/>
  </AbsoluteFill>;

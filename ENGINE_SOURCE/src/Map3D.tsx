@@ -120,7 +120,7 @@ function ShipArtwork({time,view}:{time:number;view:number}){
  texture.colorSpace=THREE.SRGBColorSpace;
  const [lon,lat]=interpolatePoint(time,ROUTE);
  // Fleet counts appear only when the narration refers to the vessels.
- const five=time>=.66 && time<4.033, three=time>=48.439 && time<52.34;
+ const five=time>=.66 && time<4.033, three=time>=42.54 && time<48.439;
  const fleet=five||three;
  // Place the extra vessels westward on the sea side of the coastline.
  const offsets=five?[0,1,2,3,4]:three?[0,1,2]:[0];
