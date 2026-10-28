@@ -1,25 +1,53 @@
 name: pipeline
+
 on:
   workflow_dispatch:
     inputs:
-      note:
-        default: 'bootstrap'
+      stage:
+        description: "probe | research | script | all"
+        default: "probe"
+  push:
+    branches: [main]
+    paths:
+      - "tools/**"
+      - "pipeline/**"
+      - ".github/workflows/pipeline.yml"
+
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
 jobs:
-  env-check:
+  probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - name: report environment
-        run: |
-          uname -a
-          nproc; free -g | head -2; df -h / | tail -1
-          python3 -V; node -v || true; ffmpeg -version 2>/dev/null | head -1 || echo "no ffmpeg"
-      - name: write artefact
-        run: |
-          mkdir -p out
-          echo "runners-ok $(date -u +%FT%TZ)" > out/env_ok.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/setup-python@v5
         with:
-          name: env_ok
-          path: out/env_ok.txt
+          python-version: "3.12"
+          cache: pip
+      - name: system deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg tesseract-ocr tesseract-ocr-eng fonts-dejavu fonts-liberation
+          ffmpeg -version | head -1
+          tesseract --version | head -1
+      - name: probe the 54 tools
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python tools/probe.py
+      - name: upload status
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tool_status
+          path: tools/tool_status.json
+          if-no-files-found: warn
+      - name: step summary
+        if: always()
+        run: python tools/summary.py >> "$GITHUB_STEP_SUMMARY"
