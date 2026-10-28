@@ -25,7 +25,7 @@ jobs:
       RELAY_URL: ${{ inputs.relay_url }}
       RELAY_AUDIENCE: ${{ inputs.relay_audience }}
       V5_ROOT: ${{ github.workspace }}/V5_STUDIO
-      V5_OUT: ${{ runner.temp }}/v5-output
+      V5_OUT: /tmp/history-v5-output
       TASK: ${{ matrix.task }}
     steps:
       - uses: actions/checkout@v4
