@@ -1,0 +1,25 @@
+name: pipeline
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        default: 'bootstrap'
+jobs:
+  env-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: report environment
+        run: |
+          uname -a
+          nproc; free -g | head -2; df -h / | tail -1
+          python3 -V; node -v || true; ffmpeg -version 2>/dev/null | head -1 || echo "no ffmpeg"
+      - name: write artefact
+        run: |
+          mkdir -p out
+          echo "runners-ok $(date -u +%FT%TZ)" > out/env_ok.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: env_ok
+          path: out/env_ok.txt
