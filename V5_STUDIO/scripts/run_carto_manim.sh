@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 sudo apt-get update -qq
-sudo apt-get install -y -qq blender ffmpeg libcairo2-dev libpango1.0-dev pkg-config >/dev/null
+sudo apt-get install -y -qq blender ffmpeg python3-numpy python3-pil libcairo2-dev libpango1.0-dev pkg-config >/dev/null
 python -m venv "$RUNNER_TEMP/manim-venv"
 "$RUNNER_TEMP/manim-venv/bin/pip" install -q --no-cache-dir manim
 mkdir -p "$RUNNER_TEMP/geodata" "$V5_OUT/manim"

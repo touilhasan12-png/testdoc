@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+sudo apt-get update -qq
+sudo apt-get install -y -qq ffmpeg >/dev/null
 export MAMBA_ROOT_PREFIX="$RUNNER_TEMP/v5-mamba"
 mkdir -p "$RUNNER_TEMP/micromamba"
 curl -fsSL --retry 3 https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xj -C "$RUNNER_TEMP/micromamba" bin/micromamba
