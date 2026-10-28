@@ -10,7 +10,16 @@ export type Beat = {
 export const ROUTE: Point[] = [
   [0,-6.35,36.78],[15.1,-6.35,36.78],[17.7,-15.5,28.2],[22.2,-38,-13],
   [24.7,-43.2,-22.9],[27.1,-49,-29.0],[30.8,-57,-36.0],[32.3,-67.8,-49.3],
-  [35.4,-68.5,-50.2],[40.1,-68.5,-51.5],[42.6,-69.9,-52.5],[48.4,-73.5,-53.2],
+  [35.4,-68.5,-50.2],
+  // Simplified water-clear passage through modern 1:10m Natural Earth land.
+  // It is a visual approximation, not a historical or navigational track.
+  [40.10000,-68.500,-51.500],[41.27384,-68.315,-52.350],
+  [41.41013,-68.400,-52.435],[42.28340,-69.445,-52.405],
+  [42.80315,-69.900,-52.665],[43.24104,-70.420,-52.720],
+  [44.98561,-71.065,-53.935],[45.81461,-72.060,-53.785],
+  [46.25025,-72.440,-53.560],[46.33967,-72.550,-53.560],
+  [47.07017,-73.260,-53.235],[47.50469,-73.575,-52.980],
+  [48.08695,-74.225,-52.815],[48.40000,-74.530,-52.680],
   [52.4,-77,-50],[55,-110,-25],[57.5,-145,-15],[59.5,-180,-6],
   [61.5,-215.25,13.45],[64.4,-229.5,10],[69,-236,10.3],[76.7,-236,10.3],
   [79.2,-232.55,.68],[85.8,-232.55,.68],[88.9,-235,-4],[90.1,-262,-15],
@@ -62,7 +71,10 @@ const ease = (x: number) => {x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
 export const smooth = ease;
 export function interpolatePoint(t:number, ps:Point[]):[number,number] {
   if(t<=ps[0][0]) return [ps[0][1],ps[0][2]];
-  for(let i=1;i<ps.length;i++) if(t<=ps[i][0]) {const a=ps[i-1],b=ps[i],q=ease((t-a[0])/(b[0]-a[0])); return [a[1]+(b[1]-a[1])*q,a[2]+(b[2]-a[2])*q];}
+  for(let i=1;i<ps.length;i++) if(t<=ps[i][0]) {const a=ps[i-1],b=ps[i],x=(t-a[0])/(b[0]-a[0]);
+    // Do not stop at each geographic waypoint in the narrow strait.
+    const q=a[0]>=40.1&&b[0]<=48.4?Math.max(0,Math.min(1,x)):ease(x);
+    return [a[1]+(b[1]-a[1])*q,a[2]+(b[2]-a[2])*q];}
   const last=ps[ps.length-1];return [last[1],last[2]];
 }
 export function viewAt(t:number):number {

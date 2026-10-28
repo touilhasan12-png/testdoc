@@ -122,12 +122,16 @@ function ShipArtwork({time,view}:{time:number;view:number}){
  // Fleet counts appear only when the narration refers to the vessels.
  const five=time>=.66 && time<4.033, three=time>=42.54 && time<48.439;
  const fleet=five||three;
- // Place the extra vessels westward on the sea side of the coastline.
+ // Opening fleet is staged offshore. In the strait, trailing ships follow
+ // earlier positions on the same approximate water-clear path.
  const offsets=five?[0,1,2,3,4]:three?[0,1,2]:[0];
- const width=view*(fleet?.045:.080);
- return <>{offsets.map((i)=><sprite key={i} position={[lon-i*view*.068,merc(lat)-i*view*.003,1.3]} scale={[width,width*.73,1]}>
-  <spriteMaterial map={texture} transparent depthWrite={false}/>
- </sprite>)}</>;
+ const width=view*(five?.045:three?.032:.080);
+ return <>{offsets.map((i)=>{
+  const [shipLon,shipLat]=three?interpolatePoint(Math.max(0,time-i*2.4),ROUTE):[lon-i*view*.068,lat];
+  return <sprite key={i} position={[shipLon,merc(shipLat)-(three?0:i*view*.003),1.3]} scale={[width,width*.73,1]}>
+   <spriteMaterial map={texture} transparent depthWrite={false}/>
+  </sprite>;
+ })}</>;
 }
 function Scene({time,view,distance,privateAssets}:{time:number;view:number;distance:number;privateAssets:boolean}){
  const [centerLon,centerLat]=scenePosition(time),b=activeBeat(time);

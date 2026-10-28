@@ -27,7 +27,7 @@ The optional `Secure cinematic map render` workflow receives inputs from an oper
 - NASA Blue Marble / GIBS, modern imagery: <https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography-bathymetry/>
 - Natural Earth, modern reference geography: <https://www.naturalearthdata.com/about/terms-of-use/>
 - Anton and Lato typefaces are distributed under the SIL Open Font License, included with the fonts.
-- Route timing and shape are schematic editorial approximations. Trinidad attempted its eastward route later, after repairs; the dashed coral arrow is illustrative.
+- Route timing and shape are schematic editorial approximations. The strait segment was redrawn as a simplified water-clear path against modern Natural Earth 1:10m land geometry; the coarser displayed basemap and oversized ship symbols can still visually touch the coast. This is not historical or navigational track data. Trinidad attempted its eastward route later, after repairs; the dashed coral arrow is illustrative.
 - The Cross of Burgundy and Portuguese banner in code are simplified editorial illustrations, not claims of an exact documented ship ensign. AI-generated people and vessels are illustrations, not authenticated likenesses.
 - Remotion has separate license terms; review <https://www.remotion.dev/docs/license> for the intended use.
 
