@@ -16,7 +16,8 @@ for(let attempt=0;attempt<20;attempt++){
  data=await response.json();break;
 }
 if(!data)throw Error('Relay handshake timed out');
-const received=await fetch(url+'/payload',{signal:AbortSignal.timeout(180000)});
+if(typeof data.payload_id!=='string'||!/^[0-9a-f]{64}$/.test(data.payload_id))throw Error('Invalid encrypted payload identifier');
+const received=await fetch(url+'/payload/'+data.payload_id,{signal:AbortSignal.timeout(180000)});
 if(!received.ok)throw Error('Encrypted asset transfer failed: '+received.status);
 const zip=open(Buffer.from(await received.arrayBuffer()),pair.privateKey);
 await writeFile(join(tmp,'history-input.zip'),zip,{mode:0o600});
