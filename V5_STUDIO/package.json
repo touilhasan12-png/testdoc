@@ -1,0 +1,46 @@
+{
+  "name": "magellan-pilot-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A 15-second, frame-accurate cinematic history-map pilot.",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build:geodata": "node scripts/build-geodata.mjs",
+    "build:chart": "node scripts/build-chart.mjs",
+    "test": "npm run check && node scripts/check-story.mjs",
+    "still": "remotion still src/index.ts MagellanPilot output/pilot.png --frame=72 --gl=swangle",
+    "render": "remotion render src/index.ts MagellanPilot output/pilot.mp4 --gl=swangle --concurrency=1 --codec=h264 --crf=18"
+  },
+  "dependencies": {
+    "@react-three/drei": "10.7.9",
+    "@react-three/fiber": "9.8.2",
+    "@react-three/postprocessing": "3.2.2",
+    "@remotion/cli": "4.0.539",
+    "@remotion/three": "4.0.539",
+    "@turf/along": "7.4.0",
+    "@turf/helpers": "7.4.0",
+    "@turf/length": "7.4.0",
+    "d3-geo": "3.1.1",
+    "echarts": "6.1.0",
+    "flag-icons": "7.6.0",
+    "flubber": "0.4.2",
+    "mapshaper": "0.7.100",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.539",
+    "three": "0.186.1",
+    "three-globe": "2.45.6",
+    "topojson-client": "3.1.0",
+    "world-atlas": "2.0.2"
+  },
+  "devDependencies": {
+    "@types/d3-geo": "^3.1.0",
+    "@types/flubber": "^0.4.0",
+    "@types/geojson": "7946.0.16",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@types/three": "0.183.1",
+    "@types/topojson-client": "3.1.5",
+    "typescript": "5.9.3"
+  }
+}

@@ -18,8 +18,8 @@ timeout 1200 "$MAMBA" run -n reconstruction python "$V5_ROOT/scripts/triposr_cpu
 # Inspect the reconstruction as an actual render, rather than trusting inference.
 cp "$V5_OUT/ship_triposr.glb" "$V5_ROOT/public/private/ship_triposr.glb"
 sudo apt-get update -qq
-sudo apt-get install -y -qq blender >/dev/null
-if blender -b -t 4 --python-exit-code 1 --python "$V5_ROOT/scripts/blender_ship.py" > "$V5_OUT/blender_ship.log" 2>&1; then
+sudo apt-get install -y -qq blender python3-numpy >/dev/null
+if blender -b -t 4 --python-use-system-env --python-exit-code 1 --python "$V5_ROOT/scripts/blender_ship.py" > "$V5_OUT/blender_ship.log" 2>&1; then
  echo 'PASS Blender rendered revised TripoSR mesh.'
 else
  printf '{"ok":false,"error":"Blender ship rendering failed; see blender_ship.log"}\n' > "$V5_OUT/blender_ship_status.json"

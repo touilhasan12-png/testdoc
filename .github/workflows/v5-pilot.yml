@@ -1,0 +1,74 @@
+name: V5 encrypted 15-second pilot render
+on:
+  workflow_dispatch:
+    inputs:
+      relay_url:
+        description: Authenticated encrypted input relay
+        required: true
+        type: string
+      relay_audience:
+        description: GitHub OIDC audience
+        required: true
+        type: string
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  render:
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [0, 1, 2]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      RELAY_URL: ${{ inputs.relay_url }}
+      RELAY_AUDIENCE: ${{ inputs.relay_audience }}
+      PART: ${{ matrix.part }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install render prerequisites
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg libnss3 libnspr4 >/dev/null
+      - name: Restore encrypted inputs
+        working-directory: ENGINE_SOURCE
+        run: |
+          set -eu
+          RELAY_ID_TOKEN="$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${RELAY_AUDIENCE}" | node -e 'let s="";process.stdin.on("data",x=>s+=x);process.stdin.on("end",()=>process.stdout.write(JSON.parse(s).value))')"
+          export RELAY_ID_TOKEN
+          node scripts/receive-private-input.mjs
+          unset RELAY_ID_TOKEN
+          mkdir -p "$GITHUB_WORKSPACE/V5_STUDIO/public/private"
+          unzip -oq "$RUNNER_TEMP/history-input.zip" -d "$GITHUB_WORKSPACE/V5_STUDIO/public/private"
+          rm -f "$RUNNER_TEMP/history-input.zip"
+      - name: Install packages and validate story
+        working-directory: V5_STUDIO
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+          npx remotion browser ensure
+      - name: Render one silent 1080p segment
+        working-directory: V5_STUDIO
+        run: |
+          set -eu
+          start=$((PART*120)); end=$((start+119))
+          npx remotion render src/index.ts MagellanPilot "$RUNNER_TEMP/pilot-${PART}.mp4" --frames="${start}-${end}" --gl=swangle --concurrency=1 --muted --codec=h264 --crf=18 --log=warn
+          ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=width,height,nb_read_frames,r_frame_rate -of json "$RUNNER_TEMP/pilot-${PART}.mp4" > "$RUNNER_TEMP/pilot-${PART}.json"
+          node -e 'const s=require(process.argv[1]).streams[0];if(s.width!==1920||s.height!==1080||Number(s.nb_read_frames)!==120)throw Error("segment frame validation failed")' "$RUNNER_TEMP/pilot-${PART}.json"
+      - name: Seal rendered segment before upload
+        working-directory: ENGINE_SOURCE
+        run: |
+          set -eu
+          (cd "$RUNNER_TEMP" && zip -q "pilot-${PART}.zip" "pilot-${PART}.mp4" "pilot-${PART}.json")
+          node scripts/crypto-envelope.mjs seal "$RUNNER_TEMP/pilot-${PART}.zip" "$RUNNER_TEMP/pilot-${PART}.enc" "$RUNNER_TEMP/history-output-public.pem"
+          rm -f "$RUNNER_TEMP/pilot-${PART}.zip" "$RUNNER_TEMP/pilot-${PART}.mp4"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-v5-pilot-${{ matrix.part }}
+          path: ${{ runner.temp }}/pilot-${{ matrix.part }}.enc
+          if-no-files-found: error
+          retention-days: 3
