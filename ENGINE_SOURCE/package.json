@@ -9,7 +9,7 @@
     "still": "remotion still src/index.ts HistoryMapPreview /tmp/history-map-still.png --frame=120 --gl=swangle",
     "preview": "remotion render src/index.ts HistoryMapPreview output/history-map-preview.mp4 --gl=swangle --concurrency=2 --codec=h264",
     "render": "remotion render src/index.ts HistoryMapFull output/history-map-full.mp4 --gl=swangle --concurrency=2 --codec=h264",
-    "test": "npm run check && node scripts/check-timeline.mjs"
+    "test": "npm run check && node scripts/check-timeline.mjs && node scripts/check-crypto.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "9.8.2",

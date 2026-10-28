@@ -12,12 +12,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Install video validation tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
       - name: Check video, Node, and npm tooling
         run: |
-          set -eu
+          set -euo pipefail
           node --version
           npm --version
-          ffmpeg -version | head -n 1
+          command -v ffmpeg
+          command -v ffprobe
+          ffmpeg -version > /tmp/ffmpeg-version.txt
+          head -n 1 /tmp/ffmpeg-version.txt
           python3 --version
           npm view remotion version
           npm view three version

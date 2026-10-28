@@ -21,6 +21,10 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Validate TypeScript and story timeline
         run: npm test
+      - name: Install FFmpeg and ffprobe
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
       - name: Prepare Chromium
         run: npx remotion browser ensure
       - name: Render public-safe sample frame and two-second animation
