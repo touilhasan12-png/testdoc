@@ -15,3 +15,13 @@ curl -fsSL --retry 2 -o "$TRIPOSR_MODEL/model.ckpt" https://huggingface.co/stabi
 export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
 # The time limit bounds CPU-only inference; on failure the workflow records it.
 timeout 1200 "$MAMBA" run -n reconstruction python "$V5_ROOT/scripts/triposr_cpu.py"
+# Inspect the reconstruction as an actual render, rather than trusting inference.
+cp "$V5_OUT/ship_triposr.glb" "$V5_ROOT/public/private/ship_triposr.glb"
+sudo apt-get update -qq
+sudo apt-get install -y -qq blender >/dev/null
+if blender -b -t 4 --python-exit-code 1 --python "$V5_ROOT/scripts/blender_ship.py" > "$V5_OUT/blender_ship.log" 2>&1; then
+ echo 'PASS Blender rendered revised TripoSR mesh.'
+else
+ printf '{"ok":false,"error":"Blender ship rendering failed; see blender_ship.log"}\n' > "$V5_OUT/blender_ship_status.json"
+ echo 'FAILED Blender mesh preview.'
+fi

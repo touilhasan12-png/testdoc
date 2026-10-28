@@ -24,14 +24,20 @@ def load_compatible(*args,**kwargs):
 torch.load=load_compatible
 model=TSR.from_pretrained(str(model_dir),config_name='config.yaml',weight_name='model.ckpt').to('cpu').eval()
 model.renderer.set_chunk_size(2048)
-im=Image.open(src/'carrack_clean.png').convert('RGB');im.thumbnail((460,460),Image.Resampling.LANCZOS)
-canvas=Image.new('RGB',(512,512),(127,127,127));canvas.paste(im,((512-im.width)//2,(512-im.height)//2))
+# Use the rembg alpha, not a rectangular photo against a second grey panel:
+# otherwise TripoSR reconstructs the boundary as a giant flat slab.
+cutout=src/'ship_cutout.png'
+if not cutout.exists():raise RuntimeError('rembg ship_cutout.png is required')
+im=Image.open(cutout).convert('RGBA');bbox=im.getchannel('A').point(lambda a:255 if a>30 else 0).getbbox()
+if not bbox:raise RuntimeError('Empty ship cutout')
+im=im.crop(bbox);im.thumbnail((435,435),Image.Resampling.LANCZOS)
+canvas=Image.new('RGB',(512,512),(127,127,127));canvas.paste(im,((512-im.width)//2,(512-im.height)//2),im.getchannel('A'))
 print('Inferring scene code.',flush=True)
 with torch.no_grad():
  codes=model([canvas],device='cpu')
- print('Extracting a 64-cubed colored mesh.',flush=True)
- mesh=model.extract_mesh(codes,True,resolution=64)[0]
+ print('Extracting a 96-cubed colored mesh.',flush=True)
+ mesh=model.extract_mesh(codes,True,resolution=96)[0]
 if len(mesh.vertices)<30 or len(mesh.faces)<30:raise RuntimeError('Generated mesh too small')
 path=out/'ship_triposr.glb';mesh.export(path)
-(out/'triposr_status.json').write_text(json.dumps({'ok':True,'device':'CPU','marching_cubes':'scikit-image CPU shim','resolution':64,'vertices':len(mesh.vertices),'faces':len(mesh.faces),'seconds':round(time.time()-start,1)},indent=2))
+(out/'triposr_status.json').write_text(json.dumps({'ok':True,'device':'CPU','marching_cubes':'scikit-image CPU shim','resolution':96,'vertices':len(mesh.vertices),'faces':len(mesh.faces),'seconds':round(time.time()-start,1)},indent=2))
 print('PASS TripoSR: generated colored 3D mesh; vertices:',len(mesh.vertices),'faces:',len(mesh.faces),flush=True)
