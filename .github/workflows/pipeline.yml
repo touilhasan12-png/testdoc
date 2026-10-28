@@ -82,6 +82,6 @@ jobs:
           path: |
             work/stage01/*.json
             work/stage01/*.txt
-            work/stage01/pages/*.jpg
+            work/stage01/pages/*
             work/logs/stage01.log
           if-no-files-found: warn
