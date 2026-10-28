@@ -1,0 +1,9 @@
+node_modules/
+.cache/
+.env
+.env.*
+.secrets/
+*.mp4
+*.wav
+*.m4a
+*.zip

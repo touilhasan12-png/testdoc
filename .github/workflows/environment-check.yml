@@ -1,0 +1,23 @@
+name: Renderer environment check
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check video, Node, and npm tooling
+        run: |
+          set -eu
+          node --version
+          npm --version
+          ffmpeg -version | head -n 1
+          python3 --version
+          npm view remotion version
+          npm view three version
