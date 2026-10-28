@@ -17,7 +17,7 @@ bpy.ops.object.camera_add(location=(5.5,-7,4.0));cam=bpy.context.object
 cam.rotation_euler=(Vector((0,0,0))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=5.7;bpy.context.scene.camera=cam
 for loc,energy,size in [((-3,-4,6),900,5),((4,3,4),500,4)]:
  bpy.ops.object.light_add(type='AREA',location=loc);bpy.context.object.data.energy=energy;bpy.context.object.data.size=size
-sc=bpy.context.scene;sc.render.engine='CYCLES';sc.cycles.samples=16;sc.render.film_transparent=True
+sc=bpy.context.scene;sc.render.engine='CYCLES';sc.cycles.samples=16;sc.cycles.use_denoising=False;sc.view_layers[0].cycles.use_denoising=False;sc.render.film_transparent=True
 sc.render.resolution_x=1024;sc.render.resolution_y=768;sc.render.resolution_percentage=100
 sc.render.image_settings.file_format='PNG';sc.render.filepath=str(out/'ship_blender.png');bpy.ops.render.render(write_still=True)
 (out/'blender_ship_status.json').write_text(json.dumps({'ok':True,'meshes':len(objects),'input':'TripoSR mesh','renderer':'Blender Cycles CPU','version':bpy.app.version_string},indent=2))

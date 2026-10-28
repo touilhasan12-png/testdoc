@@ -7,8 +7,8 @@ from pathlib import Path
 out=Path(os.environ['V5_OUT']); addon=Path(os.environ['BLENDERGIS_DIR']); shape=Path(os.environ['IBERIA_SHP']);sys.path.insert(0,str(addon.parent))
 sys.path.append('/usr/lib/python3/dist-packages')
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
-import BlenderGIS
-BlenderGIS.register()
+import addon_utils
+addon_utils.enable('BlenderGIS', default_set=True, persistent=True)
 result=bpy.ops.importgis.shapefile('EXEC_DEFAULT',filepath=str(shape),shpCRS='EPSG:4326',separateObjects=True)
 objects=[o for o in bpy.context.scene.objects if o.type=='MESH' and len(o.data.vertices)>2]
 if not objects:raise RuntimeError('BlenderGIS imported no polygon meshes: '+repr(result))
@@ -32,7 +32,7 @@ bpy.ops.object.camera_add(location=(0,-5.6,7.6),rotation=(radians(35),0,0));cam=
 cam.rotation_euler=(Vector((0,0,0))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=8.0
 bpy.context.scene.camera=cam
 bpy.ops.object.light_add(type='AREA',location=(-2,-3,7));light=bpy.context.object;light.data.energy=500;light.data.size=7
-scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=8;scene.render.film_transparent=True
+scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=8;scene.cycles.use_denoising=False;scene.view_layers[0].cycles.use_denoising=False;scene.render.film_transparent=True
 scene.render.resolution_x=960;scene.render.resolution_y=540;scene.render.resolution_percentage=100
 scene.render.image_settings.file_format='PNG';scene.render.filepath=str(out/'iberia_blendergis.png');bpy.ops.render.render(write_still=True)
 (out/'blendergis_status.json').write_text(json.dumps({'ok':True,'objects':len(objects),'source':'Natural Earth 1:50m countries','import':'BlenderGIS shapefile','blender':bpy.app.version_string},indent=2))
