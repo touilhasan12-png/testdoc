@@ -70,14 +70,18 @@ jobs:
           python -m pip install -q -r requirements.txt
       - name: run stage 1
         run: python pipeline/stage01/run.py
-      - name: bundle work
+      - name: prune bulky clones before upload
         if: always()
         run: |
-          mkdir -p dist
-          tar -czf dist/stage01.tar.gz -C work stage01 logs 2>/dev/null || true
+          rm -rf work/stage01/awesome-osint work/stage01/bellingcat-toolkit work/stage01/spiderfoot work/stage01/snapshots || true
+          du -sh work 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: stage01
-          path: dist/stage01.tar.gz
+          path: |
+            work/stage01/*.json
+            work/stage01/*.txt
+            work/stage01/pages/*.jpg
+            work/logs/stage01.log
           if-no-files-found: warn

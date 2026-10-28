@@ -30,25 +30,35 @@ def search(q, date_from, date_to, limit=25):
 
 def main():
     out = out_dir(STAGE)
-    queries = [
-        ("Mary Celeste", "1872-11-01", "1873-06-30"),
-        ("Mary Celeste", "1873-07-01", "1885-12-31"),
+    # The LoC full-text index is noisy (it matches the words separately). We keep the
+    # broad harvest for the record, then tighten with a quoted phrase search, and we keep
+    # only pages whose own OCR actually contains the phrase - no inferred hits.
+    plan = [
+        ("broad", "Mary Celeste", "1872-11-01", "1885-12-31", 40),
+        ("phrase", '"Mary Celeste"', "1872-11-01", "1885-12-31", 40),
+        ("wreck", '"Mary Celeste" wreck', "1872-12-01", "1874-12-31", 25),
+        ("doyle", '"J. Habakuk Jephson"', "1884-01-01", "1886-12-31", 25),
     ]
-    all_items, errors = [], []
-    for q, a, b in queries:
-        items, err = search(q, a, b)
-        log(STAGE, "libofcongress-mcp(SUBSTITUTED)", f"query='{q}' {a}..{b} -> {len(items)} items {err or ''}")
+    all_items, errors, per_query = [], [], {}
+    for tag, q, a, b, lim in plan:
+        items, err = search(q, a, b, lim)
+        per_query[tag] = {"q": q, "from": a, "to": b, "returned": len(items), "error": err}
+        log(STAGE, "libofcongress-mcp(SUBSTITUTED)", f"[{tag}] q='{q}' {a}..{b} -> {len(items)} items {err or ''}")
         if err:
-            errors.append(err)
+            errors.append(f"{tag}: {err}")
+        for it in items:
+            it["query_tag"] = tag
         all_items += items
-    # de-duplicate on page_url
     seen, uniq = set(), []
     for it in all_items:
         k = it["page_url"]
         if k and k not in seen:
             seen.add(k); uniq.append(it)
-    write_json(os.path.join(out, "loc_items.json"), {"query_errors": errors, "count": len(uniq), "items": uniq})
-    print(json.dumps({"items": len(uniq), "errors": errors}))
+    verified = [it for it in uniq if "mary celeste" in (it.get("ocr") or "").lower()]
+    write_json(os.path.join(out, "loc_items.json"),
+               {"query_errors": errors, "per_query": per_query, "count_raw": len(uniq),
+                "count_phrase_verified": len(verified), "items": verified or uniq})
+    print(json.dumps({"raw": len(uniq), "phrase_verified": len(verified), "errors": errors}))
     if not uniq:
         raise SystemExit("no LoC items retrieved - stopping rather than inventing sources")
 
