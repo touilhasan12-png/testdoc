@@ -85,3 +85,26 @@ jobs:
             work/stage01/pages/*
             work/logs/stage01.log
           if-no-files-found: warn
+
+  script:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: run stage 2
+        run: python pipeline/stage02/run.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage02
+          path: |
+            work/stage02/*.json
+            work/stage02/*.md
+            work/stage02/*.csv
+            work/logs/stage02.log
+          if-no-files-found: warn
