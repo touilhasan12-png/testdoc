@@ -11,11 +11,17 @@ unzip -oq "$RUNNER_TEMP/geodata/countries.zip" -d "$RUNNER_TEMP/geodata"
 npx --yes mapshaper "$RUNNER_TEMP/geodata/ne_50m_admin_0_countries.shp" -filter "ADM0_A3 == 'ESP' || ADM0_A3 == 'PRT'" -simplify 20% keep-shapes -o format=shapefile "$RUNNER_TEMP/geodata/iberia.shp"
 export IBERIA_SHP="$RUNNER_TEMP/geodata/iberia.shp" BLENDERGIS_DIR="$RUNNER_TEMP/BlenderGIS"
 git clone -q --depth 1 https://github.com/domlysz/BlenderGIS.git "$BLENDERGIS_DIR"
-if blender -b -t 4 --python "$V5_ROOT/scripts/blendergis_layer.py" > "$V5_OUT/blender.log" 2>&1; then
+if blender -b -t 4 --python-use-system-env --python-exit-code 1 --python "$V5_ROOT/scripts/blendergis_layer.py" > "$V5_OUT/blender.log" 2>&1; then
  echo 'PASS Blender/BlenderGIS.'
 else
  printf '{"ok":false,"error":"BlenderGIS import or rendering failed; see blender.log"}\n' > "$V5_OUT/blendergis_status.json"
  echo 'FAILED Blender/BlenderGIS; details in encrypted diagnostic.'
+fi
+if blender -b -t 4 --python-use-system-env --python-exit-code 1 --python "$V5_ROOT/scripts/blender_ship.py" > "$V5_OUT/blender_ship.log" 2>&1; then
+ echo 'PASS Blender ship rendering.'
+else
+ printf '{"ok":false,"error":"Blender ship rendering failed; see blender_ship.log"}\n' > "$V5_OUT/blender_ship_status.json"
+ echo 'FAILED Blender ship rendering.'
 fi
 if "$RUNNER_TEMP/manim-venv/bin/manim" -ql -r 960,540 --fps 24 -t --format=webm --media_dir "$V5_OUT/manim" "$V5_ROOT/scripts/compass_manim.py" NavigationOrbit > "$V5_OUT/manim.log" 2>&1; then
  movie=$(find "$V5_OUT/manim" -name '*.webm' -type f | head -1)

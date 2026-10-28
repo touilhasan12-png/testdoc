@@ -5,6 +5,7 @@ from math import radians
 from pathlib import Path
 
 out=Path(os.environ['V5_OUT']); addon=Path(os.environ['BLENDERGIS_DIR']); shape=Path(os.environ['IBERIA_SHP']);sys.path.insert(0,str(addon.parent))
+sys.path.append('/usr/lib/python3/dist-packages')
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 import BlenderGIS
 BlenderGIS.register()
