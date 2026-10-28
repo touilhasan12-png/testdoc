@@ -12,3 +12,8 @@ node_modules/
 ENGINE_SOURCE/public/private/
 ENGINE_SOURCE/output/
 ENGINE_SOURCE/.render-transfer/
+
+# V5 private project media and rendered results
+V5_STUDIO/public/private/
+V5_STUDIO/output/
+V5_STUDIO/.render-transfer/
