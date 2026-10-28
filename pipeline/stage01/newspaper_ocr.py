@@ -49,6 +49,11 @@ def main():
     rows, texts = [], []
     for i, it in enumerate(items):
         dest = os.path.join(out, "pages", f"{i+1:02d}.jpg")
+        if not it.get("image"):
+            rows.append({"n": i + 1, "title": it["title"], "date": it["date"],
+                         "status": "NO_IIIF_IMAGE_IN_RECORD", "image_urls_all": it.get("image_urls_all")})
+            log(STAGE, "Newspaper-OCR-V3", f"page {i+1}: record has no IIIF image")
+            continue
         p, used_url, size = fetch_page(it, dest)
         if not p:
             rows.append({"n": i + 1, "title": it["title"], "date": it["date"],

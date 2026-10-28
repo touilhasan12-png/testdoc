@@ -23,7 +23,9 @@ def search(q, date_from, date_to, limit=25):
             "page_url": r.get("id"),
             "item_url": r.get("url"),
             "ocr": (r.get("description") or [""])[0] if r.get("description") else "",
-            "image": (r.get("image_url") or [None])[-1],
+            "image": next((u for u in (r.get("image_url") or []) if "/image-services/iiif/" in u and "/full/" in u), None),
+            "alto": next((u for u in (r.get("image_url") or []) if "word-coordinates-service" in u), None),
+            "image_urls_all": r.get("image_url") or [],
             "source": "Library of Congress, Chronicling America",
         })
     return items, None
