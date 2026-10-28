@@ -12,14 +12,16 @@ STAGE = "stage01"
 def try_auto_archiver(dest_dir):
     """A tool only counts as 'used' when it actually produced a file. Step 1: install.
     Step 2: run it on one URL. Step 3: check that files really landed in dest_dir."""
-    rc = subprocess.run([sys.executable, "-m", "pip", "install", "--quiet", "auto-archiver>=0.9,<0.12"],
+    rc = subprocess.run([sys.executable, "-m", "pip", "install", "--quiet", "auto-archiver==1.2.9"],
                         capture_output=True, text=True, timeout=900)
     if rc.returncode != 0:
         return False, "pip install auto-archiver failed: " + (rc.stderr or "")[-200:], None
     os.makedirs(dest_dir, exist_ok=True)
-    rc = subprocess.run([sys.executable, "-m", "auto_archiver", "--help"], capture_output=True, text=True, timeout=120)
+    # v1.x exposes an `auto-archiver` console script (not `python -m auto_archiver`)
+    probe = ["auto-archiver", "--help"]
+    rc = subprocess.run(probe, capture_output=True, text=True, timeout=180)
     if rc.returncode != 0:
-        return False, "auto_archiver CLI missing after install", None
+        return False, ("auto-archiver CLI returned %d: %s" % (rc.returncode, (rc.stderr or rc.stdout or "")[-300:])), None
     return True, "CLI present", rc.stdout
 
 def fallback(url, dest_dir):
@@ -44,7 +46,7 @@ def main():
         produced = []
         if ok:
             before = set(os.listdir(dest))
-            rc = subprocess.run([sys.executable, "-m", "auto_archiver", "--cli", target],
+            rc = subprocess.run(["auto-archiver", "--url", target, "--save-locally"],
                                 capture_output=True, text=True, timeout=600, cwd=dest)
             after = set(os.listdir(dest))
             produced = sorted(after - before)
