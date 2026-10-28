@@ -1,0 +1,36 @@
+{
+  "name": "cinematic-history-map-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Frame-accurate 3D history maps with Remotion, Three.js and Natural Earth.",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "compositions": "remotion compositions src/index.ts --gl=swangle",
+    "still": "remotion still src/index.ts HistoryMapPreview /tmp/history-map-still.png --frame=120 --gl=swangle",
+    "preview": "remotion render src/index.ts HistoryMapPreview output/history-map-preview.mp4 --gl=swangle --concurrency=2 --codec=h264",
+    "render": "remotion render src/index.ts HistoryMapFull output/history-map-full.mp4 --gl=swangle --concurrency=2 --codec=h264",
+    "test": "npm run check && node scripts/check-timeline.mjs"
+  },
+  "dependencies": {
+    "@react-three/fiber": "9.8.2",
+    "@remotion/cli": "4.0.539",
+    "@remotion/three": "4.0.539",
+    "@turf/centroid": "7.2.0",
+    "d3-geo": "3.1.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.539",
+    "three": "0.186.1",
+    "topojson-client": "3.1.0",
+    "world-atlas": "2.0.2"
+  },
+  "devDependencies": {
+    "@types/d3-geo": "^3.1.0",
+    "@types/geojson": "7946.0.16",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@types/three": "0.183.1",
+    "@types/topojson-client": "3.1.5",
+    "typescript": "5.9.3"
+  }
+}

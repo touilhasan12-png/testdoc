@@ -7,3 +7,8 @@ node_modules/
 *.wav
 *.m4a
 *.zip
+
+# Private project inputs; never publish to the public repository
+ENGINE_SOURCE/public/private/
+ENGINE_SOURCE/output/
+ENGINE_SOURCE/.render-transfer/
