@@ -10,6 +10,11 @@ on:
         description: OIDC audience for one-time input transfer
         required: true
         type: string
+      parts:
+        description: JSON list of 20-second chunk indices
+        required: true
+        type: string
+        default: '[0,1,2,3,4,5]'
 permissions:
   contents: read
   id-token: write
@@ -19,7 +24,7 @@ jobs:
       fail-fast: false
       max-parallel: 6
       matrix:
-        part: [0, 1, 2, 3, 4, 5]
+        part: ${{ fromJSON(inputs.parts) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     defaults:

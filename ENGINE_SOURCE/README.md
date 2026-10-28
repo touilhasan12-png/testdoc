@@ -18,7 +18,7 @@ The `Test 3D map engine` workflow runs this test on `workflow_dispatch`. It rend
 
 ## Project input contract (not checked in)
 
-`public/private/` must contain `narration_and_score.m4a`, `subtitles.json`, and PNG illustrations named `victoria`, `magellan`, `elcano`, `lapulapu`, `mutiny`, `wreck`, `scarcity`, `spice`, and `canoe`. The JSON is an array of `{from,to,text}` times in seconds. Public-repository workflow artifacts can be visible to others: do not upload private media as an unencrypted artifact.
+`public/private/` must contain `narration_and_score.m4a`, `subtitles.json`, and PNG illustrations named `victoria`, `magellan`, `elcano`, `lapulapu`, `mutiny`, `wreck`, `scarcity`, `spice`, `canoe`, `astrolabe`, and `strait`. The JSON is an array of `{from,to,text}` times in seconds. Public-repository workflow artifacts can be visible to others: do not upload private media as an unencrypted artifact.
 
 The optional `Secure cinematic map render` workflow receives inputs from an operator-run temporary relay, authenticated by a GitHub Actions OIDC token constrained to the repository, workflow and run. Inputs are encrypted for an ephemeral runner public key using RSA-OAEP-SHA256 and AES-256-GCM; the output is encrypted for the operator's separate public key before artifact upload. The relay operator must securely retain its private key and verify JWTs correctly. The workflow never stores a personal access token in the repository. A successful public-safe smoke test does not guarantee that an authenticated private-input run has succeeded.
 

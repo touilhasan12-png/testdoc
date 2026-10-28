@@ -3,6 +3,25 @@ import {AbsoluteFill, Img, continueRender, delayRender, staticFile, useCurrentFr
 import {activeBeat, opacity, smooth} from './timeline';
 
 type Caption={from:number;to:number;text:string};
+const StorySymbol:React.FC<{kind:'globe'|'people';time:number;start:number;fade:number;scale:number}>=({kind,time,start,fade,scale})=>{
+ if(kind==='globe'){
+  const reveal=smooth((time-start)/1.5);
+  return <div style={{position:'absolute',right:120*scale,bottom:'22%',width:240*scale,height:240*scale,opacity:fade,filter:'drop-shadow(0 2px 10px #10202a)'}}>
+   <svg viewBox="0 0 240 240" width="100%" height="100%" fill="none" stroke="#efd7a5" strokeWidth="2.2">
+    <circle cx="120" cy="120" r="89" opacity=".9"/>
+    <ellipse cx="120" cy="120" rx="42" ry="89" opacity=".55"/>
+    <ellipse cx="120" cy="120" rx="89" ry="30" opacity=".55"/>
+    <path d="M35 120H205 M120 31V209" opacity=".45"/>
+    <path d="M36 143 C73 103 96 85 126 100 S181 151 205 97" stroke="#fff4d3" strokeWidth="4" strokeDasharray="200" strokeDashoffset={200*(1-reveal)}/>
+   </svg>
+  </div>;
+ }
+ return <div style={{position:'absolute',right:120*scale,bottom:'25%',width:430*scale,display:'grid',gridTemplateColumns:'repeat(9,1fr)',gap:8*scale,opacity:fade}}>
+  {Array.from({length:18},(_,i)=><svg key={i} viewBox="0 0 32 50" width="100%" style={{opacity:smooth((time-start-i*.045)/.35),filter:'drop-shadow(0 2px 3px #0a1620)'}}>
+   <circle cx="16" cy="9" r="7" fill="#ead6b5"/><path d="M6 25 Q7 17 16 17 Q25 17 26 25 L27 46 H5 Z" fill="#b59b79"/>
+  </svg>)}
+ </div>;
+};
 const Flag:React.FC<{kind:'spain'|'portugal';size:number}>=({kind,size})=>kind==='spain'?
   <svg width={size} height={size*.66} viewBox="0 0 120 80" aria-label="Simplified Cross of Burgundy"><rect width="120" height="80" fill="#f0eadb"/><path d="M7 5 L113 75 M113 5 L7 75" stroke="#a31e29" strokeWidth="11"/></svg>:
   <svg width={size} height={size*.66} viewBox="0 0 120 80" aria-label="Simplified Portuguese royal banner"><rect width="120" height="80" fill="#eee8d9"/><rect x="38" y="8" width="44" height="60" rx="17" fill="#9b2731"/><rect x="44" y="14" width="32" height="47" rx="12" fill="#e8dfca"/><path d="M60 17 v31 M48 29 h24" stroke="#224d83" strokeWidth="7"/></svg>;
@@ -42,6 +61,7 @@ export const Overlay:React.FC<{privateAssets:boolean}>=({privateAssets})=>{
     <Img src={staticFile(`private/${b.secondImage}.png`)} style={{maxHeight:'100%',maxWidth:'100%',objectFit:'contain',filter:'drop-shadow(0 8px 12px rgba(0,0,0,.62))'}}/>
   </div>:null}
   {b?.flag?<div style={{position:'absolute',left:'55%',top:'38%',opacity:fade,filter:'drop-shadow(0 3px 6px #06131a)',transform:`translateY(${(1-fade)*10*sc}px)`}}><Flag kind={b.flag} size={120*sc}/></div>:null}
+  {b?.feature?<StorySymbol kind={b.feature} time={t} start={b.from} fade={fade} scale={sc}/>:null}
   <Captions enabled={privateAssets} time={t} scale={sc}/>
  </AbsoluteFill>;
 };

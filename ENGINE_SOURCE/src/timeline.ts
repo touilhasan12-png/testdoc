@@ -5,6 +5,7 @@ export type Beat = {
   from: number; to: number; title: string; subtitle: string;
   image?: string; secondImage?: string; side?: 'left' | 'right';
   flag?: 'spain' | 'portugal'; region?: string; color?: string;
+  feature?: 'globe' | 'people';
 };
 export const ROUTE: Point[] = [
   [0,-6.35,36.78],[15.1,-6.35,36.78],[17.7,-15.5,28.2],[22.2,-38,-13],
@@ -26,16 +27,16 @@ export const VIEWS: [number,number][] = [
 export const BEATS: Beat[] = [
  {from:.66,to:4.033,title:'FIVE SHIPS',subtitle:'SANLÚCAR · 1519',flag:'spain',region:'724',color:'#ca9b62'},
  {from:4.033,to:6.998,title:'ONE RETURNS',subtitle:'THE LONGEST VOYAGE'},
- {from:6.998,to:10.780,title:'FIRST RECORDED',subtitle:'CIRCUMNAVIGATION'},
+ {from:6.998,to:10.780,title:'FIRST RECORDED',subtitle:'CIRCUMNAVIGATION',feature:'globe'},
  {from:11.29,to:14.286,title:'FERDINAND MAGELLAN',subtitle:'PORTUGUESE NAVIGATOR',image:'magellan',side:'left',region:'620',color:'#8fa99d'},
  {from:14.286,to:18.734,title:'A SPANISH FLEET',subtitle:'BACKED BY THE CROWN',flag:'spain',region:'724',color:'#ca9b62'},
- {from:18.734,to:21.730,title:'SAILING WEST',subtitle:'THE SPICE ISLANDS'},
+ {from:18.734,to:21.730,title:'SAILING WEST',subtitle:'THE SPICE ISLANDS',image:'astrolabe',side:'right'},
  {from:22.24,to:27.306,title:'BRAZIL',subtitle:'THE ATLANTIC COAST',region:'076',color:'#ce9d58'},
  {from:27.306,to:30.76,title:'FIND THE PASSAGE',subtitle:'SOUTH ALONG THE COAST'},
  {from:31.27,to:34.857,title:'WINTER & MUTINY',subtitle:'PATAGONIA · 1520',image:'mutiny',side:'left'},
  {from:34.857,to:37.139,title:'SANTIAGO',subtitle:'LOST IN A STORM',image:'wreck',side:'left'},
  {from:37.139,to:42.03,title:'SAN ANTONIO',subtitle:'DESERTS AND RETURNS'},
- {from:42.54,to:46.441,title:'THE STRAIT',subtitle:'A DANGEROUS PASSAGE'},
+ {from:42.54,to:46.441,title:'THE STRAIT',subtitle:'A DANGEROUS PASSAGE',image:'strait',side:'left'},
  {from:46.441,to:48.439,title:'THREE SHIPS',subtitle:'THROUGH THE STRAIT'},
  {from:48.439,to:52.34,title:'THE PACIFIC',subtitle:'A VAST UNKNOWN OCEAN'},
  {from:52.85,to:56.543,title:'THE CROSSING',subtitle:'NOT SO PEACEFUL'},
@@ -52,7 +53,7 @@ export const BEATS: Beat[] = [
  {from:95.66,to:99.66,title:'PORTUGUESE PATROLS',subtitle:'THREATS ON THE RETURN',flag:'portugal'},
  {from:100.17,to:103.599,title:'CAPE VERDE',subtitle:'SAILORS DETAINED',flag:'portugal'},
  {from:103.599,to:107.028,title:'SANLÚCAR',subtitle:'6 SEPTEMBER 1522',flag:'spain',region:'724',color:'#ca9b62'},
- {from:107.028,to:110.931,title:'18 EUROPEANS',subtitle:'ABOARD VICTORIA'},
+ {from:107.028,to:110.931,title:'18 EUROPEANS',subtitle:'ABOARD VICTORIA',feature:'people'},
  {from:110.931,to:112.5,title:'ONE SHIP',subtitle:'THE FIRST RECORDED CIRCUIT'},
  {from:112.941,to:116.37,title:'PACIFIC NAVIGATORS',subtitle:'INDIGENOUS KNOWLEDGE',image:'canoe',side:'right'},
  {from:116.42,to:119.9,title:'A SHARED WORLD',subtitle:'ONE SHIP · THREE OCEANS'}

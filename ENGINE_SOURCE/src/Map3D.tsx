@@ -119,10 +119,11 @@ function ShipArtwork({time,view}:{time:number;view:number}){
  const texture=useLoader(THREE.TextureLoader,staticFile('private/victoria.png'));
  texture.colorSpace=THREE.SRGBColorSpace;
  const [lon,lat]=interpolatePoint(time,ROUTE);
- // Five distinct boats illustrate the initial fleet; then just one shows the return.
- const fleet=time>=.66 && time<4.033;
- // Keep every ship west of the departure port, on the Atlantic side.
- const offsets=fleet?[0,1,2,3,4]:[0];
+ // Fleet counts appear only when the narration refers to the vessels.
+ const five=time>=.66 && time<4.033, three=time>=48.439 && time<52.34;
+ const fleet=five||three;
+ // Place the extra vessels westward on the sea side of the coastline.
+ const offsets=five?[0,1,2,3,4]:three?[0,1,2]:[0];
  const width=view*(fleet?.045:.080);
  return <>{offsets.map((i)=><sprite key={i} position={[lon-i*view*.068,merc(lat)-i*view*.003,1.3]} scale={[width,width*.73,1]}>
   <spriteMaterial map={texture} transparent depthWrite={false}/>
