@@ -70,11 +70,13 @@ function PathSegment({a,b,color,radius}:{a:THREE.Vector3;b:THREE.Vector3;color:s
  </mesh>;
 }
 function Journey({time,view}:{time:number;view:number}){
- if(time<15.1)return null;
- const points:THREE.Vector3[]=[];
- for(const p of ROUTE)if(p[0]<=time)points.push(worldGeo(p[1],p[2],.2));
- const [lon,lat]=interpolatePoint(time,ROUTE);points.push(worldGeo(lon,lat,.2));
- return <>{points.slice(1).map((b,i)=><PathSegment key={i} a={points[i]} b={b} radius={view/1050} color={ROUTE[Math.min(i+1,ROUTE.length-1)][0]>=88.9?'#71d0c2':'#f1cb85'}/>)}</>;
+ // Don't leave old route lines behind portraits or turn them into decoration.
+ if(time<15.1||activeBeat(time)?.image)return null;
+ const from=Math.max(15.1,time-12),[sx,sy]=interpolatePoint(from,ROUTE);
+ const points:{time:number;pos:THREE.Vector3}[]=[{time:from,pos:worldGeo(sx,sy,.2)}];
+ for(const p of ROUTE)if(p[0]>from&&p[0]<=time)points.push({time:p[0],pos:worldGeo(p[1],p[2],.2)});
+ const [lon,lat]=interpolatePoint(time,ROUTE);points.push({time,pos:worldGeo(lon,lat,.2)});
+ return <>{points.slice(1).map((b,i)=><PathSegment key={i} a={points[i].pos} b={b.pos} radius={view/1050} color={b.time>=88.9?'#71d0c2':'#f1cb85'}/>)}</>;
 }
 function Branch({time,view}:{time:number;view:number}){
  const isAnt=time>=37.139&&time<42.03, isTri=time>=81.678&&time<86.046;
@@ -119,9 +121,10 @@ function ShipArtwork({time,view}:{time:number;view:number}){
  const [lon,lat]=interpolatePoint(time,ROUTE);
  // Five distinct boats illustrate the initial fleet; then just one shows the return.
  const fleet=time>=.66 && time<4.033;
- const offsets=fleet?[-2,-1,0,1,2]:[0];
+ // Keep every ship west of the departure port, on the Atlantic side.
+ const offsets=fleet?[0,1,2,3,4]:[0];
  const width=view*(fleet?.045:.080);
- return <>{offsets.map((i)=><sprite key={i} position={[lon+i*view*.068,merc(lat)-Math.abs(i)*view*.009,1.3]} scale={[width,width*.73,1]}>
+ return <>{offsets.map((i)=><sprite key={i} position={[lon-i*view*.068,merc(lat)-i*view*.003,1.3]} scale={[width,width*.73,1]}>
   <spriteMaterial map={texture} transparent depthWrite={false}/>
  </sprite>)}</>;
 }
