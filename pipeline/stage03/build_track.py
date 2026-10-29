@@ -13,7 +13,7 @@ def find_narrator(out):
         p = os.path.join(out, name, "lines.json")
         if os.path.exists(p):
             d = json.load(open(p))
-            if d.get("lines"):
+            if isinstance(d, dict) and d.get("lines"):
                 return name, d
     return None, None
 
@@ -61,8 +61,10 @@ def main():
 
     trimmed = os.path.join(out, "03_narration_trimmed.wav")
     src_wav = cleaned if demucs_ok else raw
-    r2 = subprocess.run(["auto-editor", src_wav, "--edit", "audio:threshold=0.04",
-                         "--margin", "0.12sec", "--output", trimmed],
+    # a TTS track has no true silence, so the absolute threshold must be very low;
+    # the margin keeps the breath between sentences.
+    r2 = subprocess.run(["auto-editor", src_wav, "--edit", "audio:threshold=0.0008",
+                         "--margin", "0.25sec", "--output", trimmed],
                         capture_output=True, text=True, timeout=3600)
     if not (r2.returncode == 0 and os.path.exists(trimmed)):
         # v29 writes next to the input with a suffix unless --output is honoured; find it
@@ -72,7 +74,7 @@ def main():
         if r2.returncode == 0 and cands:
             import shutil
             shutil.move(cands[0], trimmed)
-    trim_ok = os.path.exists(trimmed)
+    trim_ok = os.path.exists(trimmed) and os.path.getsize(trimmed) > 100000
     log(STAGE, "auto-editor", f"rc={r2.returncode} out_exists={trim_ok} stderr={(r2.stderr or '')[-200:]!r}")
 
     final = trimmed if trim_ok else (cleaned if demucs_ok else raw)
