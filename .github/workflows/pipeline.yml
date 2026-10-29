@@ -176,7 +176,8 @@ jobs:
           if-no-files-found: warn
 
   music:
-    if: github.event_name == 'workflow_dispatch' || github.event.inputs.stage == 'all'
+    needs: [voice]
+    if: always() && needs.voice.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
