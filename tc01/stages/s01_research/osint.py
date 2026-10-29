@@ -125,18 +125,29 @@ def maigret(work: Path, log, usernames: list[str], venv: Path, timeout: int = 78
                  "--timeout", "10", "--retries", "1", "--no-progressbar", "--no-color",
                  "--txt", "--json", "ndjson", "--folderoutput", str(mdir)],
                 log, timeout=timeout)
-        found = (sorted(mdir.rglob(f"{u}.ndjson")) or sorted(mdir.rglob(f"{u}.json"))
-                 or sorted(mdir.rglob(f"{u}*.txt")))
+        # maigret 0.6.x writes report_<username>.txt / report_<username>_ndjson.json / .html
+        found = (sorted(mdir.rglob(f"report_{u}_ndjson.json"))
+                 or sorted(mdir.rglob(f"report_{u}.json"))
+                 or sorted(mdir.rglob(f"{u}.ndjson"))
+                 or sorted(mdir.rglob(f"report_{u}.txt"))
+                 or sorted(mdir.rglob(f"{u}.txt")))
+        extra_txt = sorted(mdir.rglob(f"report_{u}.txt"))
+        for f in extra_txt:
+            if f not in found:
+                found.append(f)
         rec = {"username": u, "rc": p2.returncode, "report_files": [str(x.name) for x in found],
                "stderr_tail": re.sub(r"\s+", " ", (p2.stderr or ""))[-300:]}
         for f in found:
-            if f.suffix == ".ndjson":
+            if f.name.endswith("_ndjson.json") or f.suffix == ".ndjson":
                 try:
                     rows = [json.loads(l) for l in f.read_text(errors="replace").splitlines() if l.strip()]
                     rec["ndjson_rows"] = len(rows)
-                    rec["sites_found"] = [{"site": r.get("site") or r.get("title"),
-                                           "url": r.get("url") or r.get("url_main"),
-                                           "status": r.get("status")} for r in rows][:80]
+                    rec["sites_found"] = [{
+                        "site": (r.get("site") or {}).get("name") if isinstance(r.get("site"), dict) else r.get("site"),
+                        "url_user": r.get("url_user") or r.get("url"),
+                        "url_main": r.get("url_main"),
+                        "status": r.get("status"), "tags": (r.get("site") or {}).get("tags") if isinstance(r.get("site"), dict) else None,
+                    } for r in rows][:80]
                 except Exception as e:  # noqa: BLE001
                     rec["parse_error"] = str(e)[:160]
             elif f.suffix == ".txt":

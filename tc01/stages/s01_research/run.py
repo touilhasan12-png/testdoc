@@ -112,6 +112,7 @@ def main() -> int:
     # so testing the URL for "sodder" is a false positive by construction. On-topic means the
     # page's own OCR text mentions the family AND the page date is in or after the event window.
     on_topic, ca_ocr_checked = [], 0
+    bundles_by_url: dict[str, dict] = {}
     for h in ca[:20]:
         if not h.get("url"):
             continue
@@ -123,6 +124,9 @@ def main() -> int:
         if not b.get("ok"):
             continue
         ca_ocr_checked += 1
+        b["page_title"] = h.get("title")
+        b["page_date"] = h.get("date")
+        bundles_by_url[h["url"]] = b
         txt = (b.get("ocr_text") or "").lower()
         yr = int(str(h.get("date") or "0")[:4] or 0)
         # "sodder" is also an ordinary 19th-century word for turf/sod, so require corroboration
@@ -249,12 +253,16 @@ def main() -> int:
 
     # ---------------------------------------------------------------- #2 maigret
     try:
+        if os.path.exists(str(venvs / "maigret" / "bin" / "maigret")):
+            log("maigret venv already present - not reinstalling")
         mg = osint.maigret(work, log, USERNAMES, venvs / "maigret", timeout=600)
-        st = "used" if mg.get("installed") else "failed"
+        ran = sum(1 for r in mg.get("results", []) if r.get("rc") == 0 and r.get("report_files"))
+        hits = sum(len(r.get("sites_found") or []) for r in mg.get("results", []))
+        st = "used" if (mg.get("installed") and ran) else "failed"
         log.tool("soxoj/maigret", st, f"usernames={USERNAMES}",
-                 f"installed={mg.get('installed')} version={mg.get('version')} "
-                 f"hits={sum(len(r.get('sites_found') or []) for r in mg.get('results', []))}",
-                 "work/s01_research/maigret_report.json", "MIT", mg.get("error", ""))
+                 f"version={mg.get('version')} runs_ok={ran}/{len(USERNAMES)} account_hits={hits}",
+                 "work/s01_research/maigret_report.json", "MIT",
+                 "" if ran else (mg.get("error") or "no report files produced"))
         report["maigret"] = {"installed": mg.get("installed"), "version": mg.get("version"),
                              "usernames": USERNAMES,
                              "hits": {r["username"]: len(r.get("sites_found") or []) for r in mg.get("results", [])}}
@@ -290,65 +298,58 @@ def main() -> int:
                      "MIT", "TC01_SKIP_HEAVY")
 
     # ---------------------------------------------------------------- #8 newspaper OCR
+    # Priority: the genuinely on-topic pages found above (three 26-Dec-1945 issues) first,
+    # then the highest-signal remaining pages. Bundles already fetched are reused, not refetched.
     pages = []
     img_dir = work / "pages"
     img_dir.mkdir(parents=True, exist_ok=True)
-    bundles = []
-    # rank candidate pages: those whose LoC-supplied OCR actually mentions the case come first
-    ocr_mentions = []
-    for h in ca[:14]:
-        if not h.get("url"):
+
+    def _signal(b: dict) -> int:
+        t = (b.get("ocr_text") or "").lower()
+        return (100 * int("sodder" in t) + 40 * int("fayetteville" in t)
+                + 20 * int("west virginia" in t) + 10 * int("five children" in t)
+                + 5 * int(str(b.get("page_date") or "").startswith("194")))
+
+    pool = list(bundles_by_url.values())
+    for h in ca[:16]:
+        u = h.get("url")
+        if not u or u in bundles_by_url:
             continue
         try:
-            b = loc.resource_bundle(h["url"], log)
+            b = loc.resource_bundle(u, log)
         except Exception as e:  # noqa: BLE001
-            log(f"resource_bundle error {h.get('url')}: {e}")
+            log(f"resource_bundle error {u}: {e}")
             continue
         if not b.get("ok"):
             continue
-        txt = (b.get("ocr_text") or "").lower()
-        hit = {k: txt.count(k) for k in ("sodder", "fayetteville", "west virginia", "five children")}
-        b["keyword_hits"] = hit
         b["page_title"] = h.get("title")
         b["page_date"] = h.get("date")
-        bundles.append(b)
-        if hit.get("sodder"):
-            ocr_mentions.append(b)
-        http.polite(0.8)
-    report["ca_pages_with_loc_ocr"] = len(bundles)
-    report["ca_pages_mentioning_sodder_in_ocr"] = len(ocr_mentions)
-    log(f"chronicling america: fetched LoC OCR for {len(bundles)} pages, "
-        f"{len(ocr_mentions)} genuinely mention 'sodder'")
-    chosen = (ocr_mentions or bundles)[:6]
+        bundles_by_url[u] = b
+        pool.append(b)
+        http.polite(0.6)
+
+    bundles = sorted(pool, key=_signal, reverse=True)[:8]
+    chosen = bundles[:6]
+    log(f"page selection: {len(pool)} bundles fetched, top-signal chosen = "
+        f"{[ (b.get('page_date'), (b.get('page_title') or '')[:34]) for b in chosen ]}")
+    report["ca_bundles_fetched"] = len(pool)
+
     for b in chosen:
         u = b.get("url")
-        hi = loc.hires_from_iiif(b.get("image"), px=1600)
+        hi = loc.hires_from_iiif(b.get("image"), px=1800)
         if not hi:
             continue
-        dest = img_dir / (re.sub(r"[^A-Za-z0-9]+", "_", str(u))[-70:] + ".jpg")
+        dest = img_dir / (re.sub(r"[^A-Za-z0-9]+", "_", str(u))[-72:] + ".jpg")
         d = http.download(hi, dest, timeout=240)
         if d.get("bytes"):
             pages.append({"label": (b.get("page_title") or "")[:90], "date": b.get("page_date"),
                           "source_url": u, "download_url": hi, "local_path": str(dest),
                           "bytes": d["bytes"], "sha": sha8(dest),
-                          "ocr_chars_from_loc": b.get("ocr_chars"), "keyword_hits": b.get("keyword_hits")})
+                          "ocr_chars_from_loc": b.get("ocr_chars")})
             (img_dir / (dest.stem + "_loc_ocr.txt")).write_text(b.get("ocr_text") or "", encoding="utf-8")
-            log(f"downloaded page scan {dest.name} ({d['bytes']} B) ocr_chars={b.get('ocr_chars')}")
-        http.polite(1.0)
-    report["page_images_downloaded"] = len(pages)
-    report["loc_ocr_chars"] = sum(p.get("ocr_chars_from_loc") or 0 for p in pages)
-    try:
-        oc = ocr.run(work, log, pages, venvs / "newspaperocr")
-        log.tool("PapaKaffey/Newspaper-OCR-V3", "used" if oc.get("cloned") else "failed",
-                 f"{len(pages)} genuine Chronicling America page scans",
-                 f"{sum(1 for p in oc.get('pages', []) if p.get('chars', 0) > 0)} pages produced OCR text "
-                 f"({sum(p.get('chars', 0) for p in oc.get('pages', []))} chars, tesseract mode)",
-                 "work/s01_research/newspaper_ocr_report.json", "none declared",
-                 "Google Vision path disabled (needs a GCP key); Tesseract path used")
-        report["ocr"] = {"cloned": oc.get("cloned"), "pages": len(oc.get("pages", []))}
-    except Exception as e:  # noqa: BLE001
-        report["ocr"] = {"error": str(e)[:200]}
-        log.tool("PapaKaffey/Newspaper-OCR-V3", "failed", "-", "-", "-", "none declared", str(e)[:200])
+            log(f"downloaded page scan {dest.name} ({d['bytes']} B) date={b.get('page_date')} "
+                f"ocr_chars={b.get('ocr_chars')}")
+        http.polite(0.8)
 
     write_json(work / "page_bundles.json", bundles)
     write_json(work / "page_images.json", pages)
