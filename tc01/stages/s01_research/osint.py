@@ -10,6 +10,12 @@ from . import net as http
 
 GH = "https://github.com/"
 
+# Ethics rule 6: a username sweep returns whatever the internet holds under that string, including
+# adult-platform profiles that have nothing to do with a 1945 case and must never reach a deliverable.
+EXCLUDED_DOMAINS = re.compile(
+    r"chaturbate|pornhub|xvideos|xhamster|onlyfans|fansly|stripchat|bongacams|livejasmin|"
+    r"cam4|myfreecams|redtube|youporn|spankbang|eporner|tnaflix|drtuber|porn\.com", re.I)
+
 
 def sh(cmd, log, timeout: int = 600, cwd=None):
     log(f"RUN {cmd if isinstance(cmd, str) else ' '.join(map(str, cmd))}")
@@ -137,6 +143,14 @@ def maigret(work: Path, log, usernames: list[str], venv: Path, timeout: int = 78
                 found.append(f)
         rec = {"username": u, "rc": p2.returncode, "report_files": [str(x.name) for x in found],
                "stderr_tail": re.sub(r"\s+", " ", (p2.stderr or ""))[-300:]}
+        # the .txt report is the authoritative list of detected accounts
+        for tf in [x for x in found if x.suffix == ".txt"]:
+            lines = [l.strip() for l in tf.read_text(errors="replace").splitlines() if l.strip()]
+            urls = [l for l in lines if l.startswith("http")]
+            rec["txt_detected_urls_raw"] = urls
+            rec["txt_detected_urls"] = [u for u in urls if not EXCLUDED_DOMAINS.search(u)]
+            rec["txt_excluded_as_adult_or_irrelevant"] = [u for u in urls if EXCLUDED_DOMAINS.search(u)]
+            rec["sites_found"] = rec["txt_detected_urls"]
         for f in found:
             if f.name.endswith("_ndjson.json") or f.suffix == ".ndjson":
                 try:
