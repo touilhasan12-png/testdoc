@@ -83,3 +83,34 @@ report**. Two of nine endpoints were missing from run 40892200170's `smoke.json`
 `PASS` — a report that lies by omission. Fixed: the probe now always records every endpoint, follows
 redirects explicitly, and prints each result as it goes. This is exactly the failure mode rule 2 forbids,
 so it is recorded here rather than quietly patched.
+
+---
+
+# Addendum 2 — model weight availability verified keyless (this decides stages S3/S4)
+
+Probed from the orchestration environment against `huggingface.co`, no token, no account:
+
+| model id | `api/models` | `resolve/main` | verdict |
+|---|---|---|---|
+| `suno-ai/bark` | 401 | 401 | **gated — unusable keyless** |
+| `suno/bark` | **200** | **200** | **USABLE keyless — this is the id Bark must be pointed at** |
+| `suno-ai/bark-small` | 401 | 401 | gated |
+| `silma-ai/silma-tts` | **200** (`gated: false`, `model.pt` listed, licence tag `apache-2.0`) | — | **USABLE keyless** — mandated tool #15 is safe |
+| `onnx-community/Kokoro-82M-v1.0-ONNX` | 200 | — | usable keyless, but only a fallback: per rule 8 the main narrator is the agent's own voice |
+| `hexgrad/Kokoro-82M-v1.0` | 401 | — | gated |
+
+Two conclusions that change the plan for the better:
+1. Mandated tool #16 (Bark) stays in the pipeline — it only needs the correct public checkpoint id
+   (`suno/bark`, set through `CHECKPOINTS_DIR` / `XDG_CACHE_HOME` + `suno/bark` in the hub config).
+   If that path fails at run time, the documented fallback for whispers/sighs is Chatterbox (#14, MIT)
+   driven with high exaggeration and low volume plus a Pedalboard breath chain — no third tool needed.
+2. Mandated tool #15 (SILMA TTS) is confirmed downloadable with no account, so the English document and
+   letter readings are not at risk.
+
+# Addendum 3 — final S0 gate: PASS
+
+Run `40894013547`, commit `3ea1a48`, workflow `tc01-smoke`, dispatched with `workflow_dispatch` over the API.
+All 10 endpoints recorded (none dropped), zero hard failures, zero missing ffmpeg filters, manifest policy
+verdict PASS with 0 removed tools lacking a substitute. `workflow_dispatch` permission on the token is
+therefore confirmed working, and the whole S1..S12 execution path is proven end to end:
+push -> dispatch -> runner -> apt toolchain -> stage script -> artefact -> download.
