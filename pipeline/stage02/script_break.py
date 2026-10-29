@@ -29,6 +29,9 @@ def main():
             "FICT-1":      [("ScanOld", "Cornhill Magazine cover, re-created", "RE-CREATED PROP"),
                             ("text-to-handwriting", "handwritten manuscript page", "RE-CREATED PROP")],
             "FICT-2":      [("Remotion", "Marie/Mary spelling cascade", "GRAPHIC")],
+            "SHIP-3":      [("Pallaidium/Blender blockout", "empty davits, no boat", "REENACTMENT"),
+                            ("ScanOld", "sailmaker's note, re-created", "RE-CREATED PROP")],
+            "CODA-2":      [("Remotion", "list of absent details", "GRAPHIC")],
             "CODA":        [("OpenMontage", "empty horizon plate", "ARCHIVAL PHOTO"),
                             ("Remotion", "end card + credits", "GRAPHIC")],
         }[s["slug"]]

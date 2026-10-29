@@ -5,7 +5,7 @@ from util import out_dir, log  # noqa
 
 STAGE = "stage03"
 HERE = os.path.dirname(os.path.abspath(__file__))
-SOURCE = os.path.join(HERE, "..", "stage02", "source", "narration_v1.txt")
+SOURCE = os.path.join(HERE, "..", "stage02", "source", "narration_v2.txt")
 
 def lines():
     """[(index, cue, text)] from the narration source - one entry per spoken line."""

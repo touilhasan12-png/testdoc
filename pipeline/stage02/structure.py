@@ -28,7 +28,7 @@ def main():
                         if re.search(r"spine|arc|beat|pixar|structure|act", h, re.I):
                             frameworks.append({"file": os.path.relpath(os.path.join(r, f), cl), "heading": h[:90]})
     log(STAGE, "writers-room-story-engine", f"clone ok={ok} frameworks_found={len(frameworks)}")
-    src = open(os.path.join(HERE, "source", "narration_v1.txt"), encoding="utf-8").read()
+    src = open(os.path.join(HERE, "source", "narration_v2.txt"), encoding="utf-8").read()
     sections = re.findall(r"^\[(\d\d:\d\d) ([^\]]+)\]$", src, re.M)
     beats = []
     for i, (tc, name) in enumerate(sections):

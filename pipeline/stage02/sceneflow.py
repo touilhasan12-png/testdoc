@@ -20,7 +20,7 @@ def main():
         rc = subprocess.run(["git", "clone", "--depth", "1", REPO, cl], capture_output=True, text=True, timeout=300)
         ok = rc.returncode == 0
     shots = json.load(open(os.path.join(out, "shotlist.json")))
-    src = open(os.path.join(HERE, "source", "narration_v1.txt"), encoding="utf-8").read()
+    src = open(os.path.join(HERE, "source", "narration_v2.txt"), encoding="utf-8").read()
     narr = [l.split(":", 1)[1].strip() for l in src.splitlines() if l.startswith("NARRATOR:")]
     # distribute narration lines across shots proportionally (plan mode)
     per = max(1, len(narr) // len(shots))

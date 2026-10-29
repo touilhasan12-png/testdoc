@@ -79,6 +79,16 @@ def main():
     log(STAGE, "auto-editor", f"rc={r2.returncode} out_exists={trim_ok} stderr={(r2.stderr or '')[-200:]!r}")
 
     final = trimmed if trim_ok else (cleaned if demucs_ok else raw)
+    # pace: the narrator speaks slowly, so the cut is tightened to a documentary pace.
+    # The factor is recorded; nothing is hidden about it.
+    atempo = float(os.environ.get("NARRATION_ATEMPO", "0.86"))
+    paced = os.path.join(out, "04_narration_paced.wav")
+    r3 = subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", final,
+                         "-filter:a", f"atempo={atempo}", "-ar", "48000", "-ac", "1", paced],
+                        capture_output=True, text=True, timeout=1800)
+    paced_ok = r3.returncode == 0 and os.path.exists(paced)
+    if paced_ok:
+        final = paced
     with wave.open(final) as f:
         final_sr, final_dur = f.getframerate(), f.getnframes() / f.getframerate()
     write_json(os.path.join(out, "track.json"),
@@ -86,7 +96,7 @@ def main():
                 "raw_wav": os.path.basename(raw), "raw_seconds": round(dur, 2),
                 "demucs_ok": demucs_ok, "auto_editor_ok": trim_ok,
                 "final_wav": os.path.basename(final), "final_seconds": round(final_dur, 2),
-                "sample_rate": final_sr,
+                "sample_rate": final_sr, "atempo": atempo, "paced_ok": paced_ok,
                 "disclosure": "Synthetic voice. No real person's voice is cloned or imitated."})
     print(json.dumps({"engine": name, "final_seconds": round(final_dur, 1),
                       "demucs": demucs_ok, "auto_editor": trim_ok}))

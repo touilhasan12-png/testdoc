@@ -36,12 +36,15 @@ def main():
                    {"ok": False, "stage": "reference_audio", "error": "no reference clip in the repo checkout"})
         log(STAGE, "SILMA TTS", "no reference clip found - stopping")
         raise SystemExit(4)
-    log(STAGE, "SILMA TTS", f"loaded, reference clip {os.path.basename(ref)}")
+    # this exact transcript belongs to the reference clip shipped in the SILMA repository
+    REF_TEXT = ("ويدقق النظر في القرآن الكريم وسائر الكتب السماوية ويتبع مسالك الرسل العظام "
+                "عليهم الصلاة والسلام.")
+    log(STAGE, "SILMA TTS", f"loaded, reference clip {os.path.basename(ref)} (transcript from the repo README)")
     metas = []
     for q in (quotes[:1] if TEST_ONLY else quotes):
         p = os.path.join(out, f"quote_{q['id']}.wav")
         s = time.time()
-        res = api.infer(ref_file=ref, ref_text=None, gen_text=q["text"],
+        res = api.infer(ref_file=ref, ref_text=REF_TEXT, gen_text=q["text"],
                         file_wave=p, seed=None, speed=1)
         wav, srate = (res[0], res[1]) if isinstance(res, tuple) else (None, 24000)
         dur = time.time() - s

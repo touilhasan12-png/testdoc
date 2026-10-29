@@ -12,8 +12,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 def main():
     out = out_dir(STAGE)
-    src = open(os.path.join(HERE, "source", "narration_v1.txt"), encoding="utf-8").read()
-    claims = json.load(open(os.path.join(HERE, "source", "claims_v1.json")))["claims"]
+    src = open(os.path.join(HERE, "source", "narration_v2.txt"), encoding="utf-8").read()
+    claims = json.load(open(os.path.join(HERE, "source", "claims_v2.json")))["claims"]
     scenes = json.load(open(os.path.join(out, "scenes.json")))["scenes"]
     narr = [l.split(":", 1)[1].strip() for l in src.splitlines() if l.startswith("NARRATOR:")]
     words = sum(len(re.findall(r"[A-Za-z']+", n)) for n in narr)

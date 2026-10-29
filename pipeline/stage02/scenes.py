@@ -29,8 +29,12 @@ SCENES = [
   "Conan Doyle publishes", "RE-CREATED PROP"),
  ("FICT-2", "Abstract. Text on black.", "The words 'Marie Celeste' multiply and overwrite each other.",
   "The spelling that stuck", "GRAPHIC"),
+ ("SHIP-3", "Exterior. Deck. Day.", "One empty set of davits. A boat that is not there.",
+  "Left, not wrecked", "REENACTMENT"),
  ("CODA", "Exterior. Open Atlantic, dusk.", "Same framing as the cold open. Emptier.",
   "The thesis", "REENACTMENT"),
+ ("CODA-2", "Abstract. Text on black.", "A list of details the record does not contain.",
+  "What retellings added", "GRAPHIC"),
 ]
 
 def main():
