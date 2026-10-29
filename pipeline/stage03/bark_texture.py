@@ -16,13 +16,24 @@ def main():
     os.makedirs(out, exist_ok=True)
     try:
         import numpy as np, torch, wave
+        _orig = torch.load
+        def _load(*a, **kw):
+            kw.setdefault("weights_only", False)
+            return _orig(*a, **kw)
+        torch.load = _load
         from bark import SAMPLE_RATE, generate_audio, preload_models
     except Exception as e:
         write_json(os.path.join(out, "status.json"), {"ok": False, "stage": "import", "error": repr(e)[:400]})
         log(STAGE, "Bark", f"import failed: {e!r}")
         raise SystemExit(2)
     t = time.time()
-    preload_models(text_use_small=True, coarse_use_small=True, fine_use_small=True)
+    try:
+        preload_models(text_use_small=True, coarse_use_small=True, fine_use_small=True)
+    except Exception as e:
+        write_json(os.path.join(out, "status.json"),
+                   {"ok": False, "stage": "model_download", "error": repr(e)[:400]})
+        log(STAGE, "Bark", f"model download/load failed: {e!r}")
+        raise SystemExit(3)
     log(STAGE, "Bark", f"models loaded in {time.time()-t:.1f}s")
     made = []
     for c in CUES:

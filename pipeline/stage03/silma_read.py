@@ -17,28 +17,45 @@ def main():
     quotes = doc_quotes()
     t0 = time.time()
     try:
-        import torch
-        from silma_tts.api import SILMA  # documented entry point of silma-ai/SILMA-TTS
+        from silma_tts.api import SilmaTTS
     except Exception as e:
         write_json(os.path.join(out, "status.json"), {"ok": False, "stage": "import", "error": repr(e)[:500]})
         log(STAGE, "SILMA TTS", f"import failed: {e!r}")
         raise SystemExit(2)
-    api = SILMA(device="cpu")
-    log(STAGE, "SILMA TTS", f"loaded on cpu in {time.time()-t0:.1f}s")
+    api = SilmaTTS()
+    # SILMA is a zero-shot reader: it needs a reference clip + its transcript. We use the
+    # reference clip shipped in the repository, never a recording of any real participant.
+    ref = None
+    for root, _, files in os.walk("/tmp/silma"):
+        for f in files:
+            if f.endswith(".wav") and "ref" in f:
+                ref = os.path.join(root, f); break
+        if ref: break
+    if not ref:
+        write_json(os.path.join(out, "status.json"),
+                   {"ok": False, "stage": "reference_audio", "error": "no reference clip in the repo checkout"})
+        log(STAGE, "SILMA TTS", "no reference clip found - stopping")
+        raise SystemExit(4)
+    log(STAGE, "SILMA TTS", f"loaded, reference clip {os.path.basename(ref)}")
     metas = []
     for q in (quotes[:1] if TEST_ONLY else quotes):
         p = os.path.join(out, f"quote_{q['id']}.wav")
         s = time.time()
-        wav = api.inference(q["text"])
+        res = api.infer(ref_file=ref, ref_text=None, gen_text=q["text"],
+                        file_wave=p, seed=None, speed=1)
+        wav, srate = (res[0], res[1]) if isinstance(res, tuple) else (None, 24000)
         dur = time.time() - s
         import numpy as np
-        arr = np.asarray(wav)
-        with wave.open(p, "wb") as w:
-            w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000)
-            w.writeframes(arr.astype("int16").tobytes())
+        if wav is None:                      # the api already wrote the file
+            with wave.open(p) as f:
+                n, srate = f.getnframes(), f.getframerate()
+            arr = np.zeros(n, dtype="float32"); dur_len = n / srate
+        else:
+            arr = np.asarray(wav).squeeze()
+            dur_len = len(arr) / srate
         metas.append({**q, "wav": os.path.basename(p), "synth_seconds": round(dur, 1),
-                      "audio_seconds": round(len(arr) / 24000, 2)})
-        log(STAGE, "SILMA TTS", f"{q['id']} {len(arr)/24000:.1f}s audio in {dur:.1f}s")
+                      "audio_seconds": round(dur_len, 2)})
+        log(STAGE, "SILMA TTS", f"{q['id']} {dur_len:.1f}s audio in {dur:.1f}s")
         if time.time() - t0 > BUDGET_S:
             log(STAGE, "SILMA TTS", "budget reached, stopping")
             break

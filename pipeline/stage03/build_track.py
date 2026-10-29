@@ -60,11 +60,20 @@ def main():
         log(STAGE, "Demucs", f"failed rc={r.returncode}: {(r.stderr or '')[-300:]}")
 
     trimmed = os.path.join(out, "03_narration_trimmed.wav")
-    r2 = subprocess.run(["auto-editor", (cleaned if demucs_ok else raw),
-                         "--output", trimmed, "--edit", "audio:threshold=0.04", "--margin", "0.12sec"],
+    src_wav = cleaned if demucs_ok else raw
+    r2 = subprocess.run(["auto-editor", src_wav, "--edit", "audio:threshold=0.04",
+                         "--margin", "0.12sec", "--output", trimmed],
                         capture_output=True, text=True, timeout=3600)
-    trim_ok = r2.returncode == 0 and os.path.exists(trimmed)
-    log(STAGE, "auto-editor", f"rc={r2.returncode} out_exists={os.path.exists(trimmed)}")
+    if not (r2.returncode == 0 and os.path.exists(trimmed)):
+        # v29 writes next to the input with a suffix unless --output is honoured; find it
+        d = os.path.dirname(src_wav)
+        cands = [f for f in os.listdir(d) if "auto-editor" in f.lower() or f.endswith("_ALTERED.wav")]
+        cands = [os.path.join(d, c) for c in cands if c != os.path.basename(src_wav)]
+        if r2.returncode == 0 and cands:
+            import shutil
+            shutil.move(cands[0], trimmed)
+    trim_ok = os.path.exists(trimmed)
+    log(STAGE, "auto-editor", f"rc={r2.returncode} out_exists={trim_ok} stderr={(r2.stderr or '')[-200:]!r}")
 
     final = trimmed if trim_ok else (cleaned if demucs_ok else raw)
     with wave.open(final) as f:
