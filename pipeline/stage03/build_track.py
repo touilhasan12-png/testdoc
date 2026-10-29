@@ -63,14 +63,15 @@ def main():
     src_wav = cleaned if demucs_ok else raw
     # a TTS track has no true silence, so the absolute threshold must be very low;
     # the margin keeps the breath between sentences.
-    r2 = subprocess.run(["auto-editor", src_wav, "--edit", "audio:threshold=0.0008",
-                         "--margin", "0.25sec", "--output", trimmed],
+    r2 = subprocess.run(["auto-editor", src_wav, "--edit", "audio:-45dB",
+                         "--margin", "0.20sec", "--output", trimmed],
                         capture_output=True, text=True, timeout=3600)
+    log(STAGE, "auto-editor", f"version: {subprocess.run(['auto-editor','--version'],capture_output=True,text=True).stdout.strip()}")
     if not (r2.returncode == 0 and os.path.exists(trimmed)):
         # v29 writes next to the input with a suffix unless --output is honoured; find it
-        d = os.path.dirname(src_wav)
-        cands = [f for f in os.listdir(d) if "auto-editor" in f.lower() or f.endswith("_ALTERED.wav")]
-        cands = [os.path.join(d, c) for c in cands if c != os.path.basename(src_wav)]
+        src_dir = os.path.dirname(src_wav)
+        cands = [f for f in os.listdir(src_dir) if "auto-editor" in f.lower() or f.endswith("_ALTERED.wav")]
+        cands = [os.path.join(src_dir, c) for c in cands if c != os.path.basename(src_wav)]
         if r2.returncode == 0 and cands:
             import shutil
             shutil.move(cands[0], trimmed)
