@@ -59,7 +59,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "work/${TC01_STAGE}" work/logs
-          python3 "tc01/stages/${TC01_STAGE}/run.py" 2>&1 | tee "work/logs/${TC01_STAGE}.log"
+          if [ -f "tc01/stages/${TC01_STAGE}/run.py" ]; then
+            python3 -m "tc01.stages.${TC01_STAGE}.run" 2>&1 | tee "work/logs/${TC01_STAGE}.log"
+          else
+            echo "no run.py for ${TC01_STAGE}"; exit 3
+          fi
 
       - name: Leak guard on stage output
         if: always()
