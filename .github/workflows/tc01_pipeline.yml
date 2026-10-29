@@ -59,6 +59,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "work/${TC01_STAGE}" work/logs
+          echo "syntax preflight (runner python $(python3 -V 2>&1))"
+          python3 -m compileall -q tc01 || { echo "SYNTAX ERROR in tc01"; exit 4; }
           if [ -f "tc01/stages/${TC01_STAGE}/run.py" ]; then
             python3 -m "tc01.stages.${TC01_STAGE}.run" 2>&1 | tee "work/logs/${TC01_STAGE}.log"
           else

@@ -58,9 +58,9 @@ def ia_items(queries: list[str], log, rows: int = 20) -> list[dict]:
     for q in queries:
         cols = {}
         for fl in fields:
+            qq = re.sub(r"[^A-Za-z0-9 _-]", "", q).replace(" ", "+")
             st, d, err = http.fetch_json(
-                IA_SEARCH + "?" + f"q={re.sub(r'[^A-Za-z0-9 \"_-]', '', q).replace(' ', '+')}"
-                + f"&fl%5B%5D={fl}&rows={rows}&page=1&output=json", timeout=45)
+                f"{IA_SEARCH}?q={qq}&fl%5B%5D={fl}&rows={rows}&page=1&output=json", timeout=45)
             docs = ((d or {}).get("response") or {}).get("docs") or []
             cols[fl] = [x.get(fl) for x in docs]
             if fl == "identifier":
