@@ -3,6 +3,10 @@ name: tc01-pipeline
 on:
   workflow_dispatch:
     inputs:
+      skip_heavy:
+        description: "1 = do not repeat slow installs already proven on a previous run"
+        required: false
+        default: "0"
       stage:
         description: "s01_research | s02_script | s04_music | s05_docs | s06_maps | s07_board | s08_recon | s09_restore | s10_footage | s11_edit | s12_grade"
         required: true
@@ -17,6 +21,7 @@ concurrency:
 
 env:
   TC01_STAGE: ${{ inputs.stage }}
+  TC01_SKIP_HEAVY: ${{ inputs.skip_heavy }}
 
 jobs:
   stage:
@@ -73,6 +78,17 @@ jobs:
           set +e
           du -sh work 2>/dev/null
           rm -rf work/venvs work/*/repos 2>/dev/null
+          find work -type d -name node_modules -prune -exec rm -rf {} + 2>/dev/null
+          find work -type f -size +12M -printf 'DROPPED(bulk) %p %s\n' -delete 2>/dev/null
+          du -sh work 2>/dev/null
+
+      - name: Prune bulky clones and venvs before the artifact upload
+        if: always()
+        run: |
+          set +e
+          du -sh work 2>/dev/null
+          rm -rf work/venvs 2>/dev/null
+          find work -type d -name repos -prune -exec rm -rf {} + 2>/dev/null
           find work -type d -name node_modules -prune -exec rm -rf {} + 2>/dev/null
           find work -type f -size +12M -printf 'DROPPED(bulk) %p %s\n' -delete 2>/dev/null
           du -sh work 2>/dev/null
