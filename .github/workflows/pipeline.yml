@@ -108,3 +108,39 @@ jobs:
             work/stage02/*.csv
             work/logs/stage02.log
           if-no-files-found: warn
+
+  voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-stage3.txt
+      - name: system deps
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg libsndfile1 espeak-ng
+      - name: python deps
+        run: python -m pip install -q -r requirements-stage3.txt
+      - name: run stage 3
+        env:
+          SILMA_TEST_ONLY: "1"
+        run: python pipeline/stage03/run.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage03
+          path: |
+            work/stage03/*.json
+            work/stage03/*.wav
+            work/stage03/chatterbox/*.json
+            work/stage03/chatterbox/*.wav
+            work/stage03/kokoro/*.wav
+            work/stage03/kokoro/*.json
+            work/stage03/silma/*.wav
+            work/stage03/silma/*.json
+            work/stage03/bark/*.wav
+            work/stage03/bark/*.json
+            work/logs/stage03.log
+          if-no-files-found: warn
