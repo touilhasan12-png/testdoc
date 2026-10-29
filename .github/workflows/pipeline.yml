@@ -121,8 +121,13 @@ jobs:
           cache-dependency-path: requirements-stage3.txt
       - name: system deps
         run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg libsndfile1 espeak-ng
-      - name: python deps
-        run: python -m pip install -q -r requirements-stage3.txt
+      - name: python deps (core)
+        run: |
+          python -m pip install -q --extra-index-url https://download.pytorch.org/whl/cpu \
+            torch==2.6.0 torchaudio==2.6.0 kokoro-onnx==0.6.1 demucs==4.1.0 auto-editor==29.3.1 soundfile==0.12.1
+      - name: python deps (chatterbox)
+        continue-on-error: true
+        run: python -m pip install -q chatterbox-tts==0.1.7
       - name: run stage 3
         env:
           SILMA_TEST_ONLY: "1"

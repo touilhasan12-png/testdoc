@@ -1,6 +1,7 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.5.1
-torchaudio==2.5.1
+# pinned to what chatterbox-tts 0.1.7 declares for python < 3.14
+torch==2.6.0
+torchaudio==2.6.0
 chatterbox-tts==0.1.7
 kokoro-onnx==0.6.1
 demucs==4.1.0
