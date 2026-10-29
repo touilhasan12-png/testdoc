@@ -1,0 +1,213 @@
+name: pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "probe | research | script | all"
+        default: "probe"
+  push:
+    branches: [main]
+    paths:
+      - "tools/**"
+      - "pipeline/**"
+      - ".github/workflows/pipeline.yml"
+
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: system deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg tesseract-ocr tesseract-ocr-eng fonts-dejavu fonts-liberation
+          ffmpeg -version | head -1
+          tesseract --version | head -1
+      - name: probe the 54 tools
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python tools/probe.py
+      - name: upload status
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tool_status
+          path: tools/tool_status.json
+          if-no-files-found: warn
+      - name: step summary
+        if: always()
+        run: python tools/summary.py >> "$GITHUB_STEP_SUMMARY"
+
+  research:
+    if: github.event_name == 'workflow_dispatch' || github.event.inputs.stage == 'all'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: system deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg tesseract-ocr tesseract-ocr-eng fonts-dejavu fonts-liberation libimage-exiftool-perl
+          python -m pip install -q -r requirements.txt
+      - name: run stage 1
+        run: python pipeline/stage01/run.py
+      - name: prune bulky clones before upload
+        if: always()
+        run: |
+          rm -rf work/stage01/awesome-osint work/stage01/bellingcat-toolkit work/stage01/spiderfoot work/stage01/snapshots || true
+          du -sh work 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage01
+          path: |
+            work/stage01/*.json
+            work/stage01/*.txt
+            work/stage01/pages/*
+            work/logs/stage01.log
+          if-no-files-found: warn
+
+  script:
+    if: github.event_name == 'workflow_dispatch' || github.event.inputs.stage == 'all'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: run stage 2
+        run: python pipeline/stage02/run.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage02
+          path: |
+            work/stage02/*.json
+            work/stage02/*.md
+            work/stage02/*.csv
+            work/logs/stage02.log
+          if-no-files-found: warn
+
+  voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-stage3.txt
+      - name: system deps
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg libsndfile1 espeak-ng
+      - name: python deps (core)
+        run: |
+          python -m pip install -q --extra-index-url https://download.pytorch.org/whl/cpu \
+            torch==2.6.0 torchaudio==2.6.0 kokoro-onnx==0.6.1 demucs==4.1.0 auto-editor==29.3.1 soundfile==0.12.1
+      - name: python deps (chatterbox, isolated venv)
+        continue-on-error: true
+        run: |
+          python -m venv /opt/cbx
+          /opt/cbx/bin/pip install -q --extra-index-url https://download.pytorch.org/whl/cpu torch==2.6.0 torchaudio==2.6.0
+          /opt/cbx/bin/pip install -q chatterbox-tts==0.1.7 resemble-perth==1.0.1
+          /opt/cbx/bin/python -c "import chatterbox.tts as c; print('chatterbox import ok', c.__file__)" || echo "chatterbox import still failing (recorded)"
+      - name: python deps (silma, isolated venv)
+        continue-on-error: true
+        run: |
+          git clone --depth 1 https://github.com/silma-ai/SILMA-TTS /tmp/silma
+          python -m venv /opt/silma
+          /opt/silma/bin/pip install -q silma-tts || /opt/silma/bin/pip install -q -e /tmp/silma || echo "SILMA install failed (recorded)"
+          /opt/silma/bin/python -c "import silma_tts; print('silma ok')" || echo "silma import failing (recorded)"
+      - name: python deps (bark, isolated venv)
+        continue-on-error: true
+        run: |
+          git clone --depth 1 https://github.com/suno-ai/bark /tmp/bark
+          python -m venv /opt/bark
+          /opt/bark/bin/pip install -q --extra-index-url https://download.pytorch.org/whl/cpu torch torchaudio
+          /opt/bark/bin/pip install -q "numpy<2" -e /tmp/bark
+          /opt/bark/bin/python -c "import bark; print('bark ok')" || echo "bark import failing (recorded)"
+      - name: run stage 3
+        env:
+          SILMA_TEST_ONLY: "1"
+          CBX_PY: /opt/cbx/bin/python
+          SILMA_PY: /opt/silma/bin/python
+          BARK_PY: /opt/bark/bin/python
+          KOKORO_PY: /opt/cbx/bin/python
+        run: python pipeline/stage03/run.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage03
+          path: |
+            work/stage03/*.json
+            work/stage03/*.wav
+            work/stage03/chatterbox/*.json
+            work/stage03/chatterbox/*.wav
+            work/stage03/kokoro/*.wav
+            work/stage03/kokoro/*.json
+            work/stage03/silma/*.wav
+            work/stage03/silma/*.json
+            work/stage03/bark/*.wav
+            work/stage03/bark/*.json
+            work/logs/stage03.log
+          if-no-files-found: warn
+
+  music:
+    needs: [voice]
+    if: always() && needs.voice.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: system deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg libsndfile1
+          python -m pip install -q -r requirements.txt pedalboard==0.9.16 numpy
+      - name: restore narration from the voice job
+        uses: actions/download-artifact@v4
+        with:
+          name: stage03
+          path: work
+      - name: run stage 4
+        env:
+          NARRATION_ATEMPO: "0.86"
+        run: python pipeline/stage04/run.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage04
+          path: |
+            work/stage04/*.json
+            work/stage04/*.wav
+            work/stage04/*.mp3
+            work/logs/stage04.log
+          if-no-files-found: warn

@@ -1,0 +1,152 @@
+{
+ "note": "Every factual sentence in narration_v1.txt maps to a claim id here. A claim is only allowed in the film if it has at least one archived source. Sources are archived in stage01 (LoC newspaper pages) and stage02 (Wikipedia, Gutenberg).",
+ "claims": [
+  {
+   "id": "C01",
+   "text": "Mary Celeste was found deserted in the Atlantic in December 1872",
+   "sources": [
+    "loc:1873-03-14",
+    "loc:1873-03-25"
+   ]
+  },
+  {
+   "id": "C02",
+   "text": "She was an American brigantine bound from New York to Genoa with a cargo of industrial alcohol",
+   "sources": [
+    "loc:1873-03-25",
+    "loc:1873-03-14"
+   ]
+  },
+  {
+   "id": "C03",
+   "text": "She was sighted by the British brigantine Dei Gratia and brought into Gibraltar",
+   "sources": [
+    "loc:1873-03-14",
+    "loc:1873-03-25"
+   ]
+  },
+  {
+   "id": "C04",
+   "text": "There were ten people aboard: the captain Benjamin Briggs, his wife, their two-year-old daughter and seven crew",
+   "sources": [
+    "wiki:Mary_Celeste"
+   ]
+  },
+  {
+   "id": "C05",
+   "text": "The cargo of barrels of spirits was untouched except for one cask which had started",
+   "sources": [
+    "loc:1873-03-14"
+   ]
+  },
+  {
+   "id": "C06",
+   "text": "Every document that could have thrown light on the vessel had been removed",
+   "sources": [
+    "loc:1873-03-14"
+   ]
+  },
+  {
+   "id": "C07",
+   "text": "The last entry in the ship's log was dated 24 November",
+   "sources": [
+    "loc:1873-03-14"
+   ]
+  },
+  {
+   "id": "C08",
+   "text": "The salvage claim went before the Vice-Admiralty court at Gibraltar and the advocate-general was Frederick Solly Flood",
+   "sources": [
+    "wiki:Mary_Celeste"
+   ]
+  },
+  {
+   "id": "C09",
+   "text": "Flood suspected the salvors and suspected murder; the examination produced no proof of crime and no one was charged",
+   "sources": [
+    "wiki:Mary_Celeste"
+   ]
+  },
+  {
+   "id": "C10",
+   "text": "The ship was released, sold repeatedly, and wrecked on a reef off Haiti in 1885",
+   "sources": [
+    "wiki:Mary_Celeste"
+   ]
+  },
+  {
+   "id": "C11",
+   "text": "In January 1884 Arthur Conan Doyle published 'J. Habakuk Jephson's Statement' in The Cornhill Magazine",
+   "sources": [
+    "wiki:Mary_Celeste",
+    "gutenberg:294"
+   ]
+  },
+  {
+   "id": "C12",
+   "text": "The story was fiction, presenting a mutiny aboard the ship, and was widely read as fact",
+   "sources": [
+    "wiki:Mary_Celeste",
+    "gutenberg:294"
+   ]
+  },
+  {
+   "id": "C13",
+   "text": "The story spelled the name Marie Celeste, and that spelling passed into common use",
+   "sources": [
+    "wiki:Mary_Celeste"
+   ]
+  },
+  {
+   "id": "C14",
+   "text": "The captain was Benjamin Briggs and his wife and their two-year-old daughter were aboard",
+   "sources": [
+    "wiki:Mary_Celeste"
+   ]
+  },
+  {
+   "id": "C15",
+   "text": "One small boat was gone from the deck and nothing else had been forced",
+   "sources": [
+    "wiki:Mary_Celeste"
+   ]
+  },
+  {
+   "id": "C16",
+   "text": "The vessel had been alone for about ten days before she was found",
+   "sources": [
+    "loc:1873-03-14"
+   ]
+  },
+  {
+   "id": "C17",
+   "text": "Flood wrote to his superiors that he suspected crime",
+   "sources": [
+    "wiki:Mary_Celeste"
+   ]
+  },
+  {
+   "id": "C18",
+   "text": "The story gave the ship a different name, crew and a villain",
+   "sources": [
+    "wiki:Mary_Celeste",
+    "gutenberg:294"
+   ]
+  },
+  {
+   "id": "C19",
+   "text": "Readers wrote to the press asking whether the story was true",
+   "sources": [
+    "wiki:Mary_Celeste"
+   ]
+  },
+  {
+   "id": "C20",
+   "text": "Later retellings added details absent from the record",
+   "sources": [
+    "wiki:Mary_Celeste"
+   ]
+  }
+ ],
+ "narration_version": "v2"
+}
