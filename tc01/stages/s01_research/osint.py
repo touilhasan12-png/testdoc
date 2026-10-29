@@ -111,25 +111,39 @@ def maigret(work: Path, log, usernames: list[str], venv: Path, timeout: int = 78
         out["error"] = (p.stderr or "")[-400:]
         return out
     ver = sh([str(venv / "bin/maigret"), "--version"], log, timeout=90)
-    out["version"] = (ver.stdout or ver.stderr or "").strip().splitlines()[-1:][0] if (ver.stdout or ver.stderr) else "?"
+    vtxt = re.sub(r"\s+", " ", (ver.stdout or "") + (ver.stderr or "")).strip()
+    m = re.search(r"(\d+\.\d+\.\d+)", vtxt)
+    out["version"] = m.group(1) if m else vtxt[:60]
+    hlp = sh([str(venv / "bin/maigret"), "--help"], log, timeout=90)
+    out["help_rc"] = hlp.returncode
+    out["help_flags"] = sorted(set(re.findall(r"(--[a-z][\w-]+)", (hlp.stdout or "") + (hlp.stderr or ""))))
     mdir = work / "maigret"
     mdir.mkdir(parents=True, exist_ok=True)
     for u in usernames:
+        # --json REQUIRES a choice argument (ndjson|simple); omitting it made maigret exit 2
         p2 = sh([str(venv / "bin/maigret"), u, "--no-recursion", "--top-sites", "200",
-                 "--timeout", "8", "--txt", "--json", "--folderoutput", str(mdir)],
+                 "--timeout", "10", "--retries", "1", "--no-progressbar", "--no-color",
+                 "--txt", "--json", "ndjson", "--folderoutput", str(mdir)],
                 log, timeout=timeout)
-        found = sorted(mdir.rglob(f"{u}.json")) or sorted(mdir.rglob("*.json"))
-        rec = {"username": u, "rc": p2.returncode, "json_files": [str(x.name) for x in found]}
-        if found:
-            try:
-                data = json.loads(found[0].read_text(errors="replace"))
-                sites = data.get("sites") or []
-                rec["sites_checked"] = len(sites)
-                rec["sites_found"] = [{"site": s.get("title") or s.get("site"),
-                                       "url": (s.get("url") or s.get("url_main"))}
-                                      for s in sites if s.get("status") in (1, "1", True) or s.get("found")]
-            except Exception as e:  # noqa: BLE001
-                rec["parse_error"] = str(e)[:160]
+        found = (sorted(mdir.rglob(f"{u}.ndjson")) or sorted(mdir.rglob(f"{u}.json"))
+                 or sorted(mdir.rglob(f"{u}*.txt")))
+        rec = {"username": u, "rc": p2.returncode, "report_files": [str(x.name) for x in found],
+               "stderr_tail": re.sub(r"\s+", " ", (p2.stderr or ""))[-300:]}
+        for f in found:
+            if f.suffix == ".ndjson":
+                try:
+                    rows = [json.loads(l) for l in f.read_text(errors="replace").splitlines() if l.strip()]
+                    rec["ndjson_rows"] = len(rows)
+                    rec["sites_found"] = [{"site": r.get("site") or r.get("title"),
+                                           "url": r.get("url") or r.get("url_main"),
+                                           "status": r.get("status")} for r in rows][:80]
+                except Exception as e:  # noqa: BLE001
+                    rec["parse_error"] = str(e)[:160]
+            elif f.suffix == ".txt":
+                txt = f.read_text(errors="replace")
+                rec["txt_chars"] = len(txt)
+                rec["txt_head"] = txt[:600]
+                rec["sites_found"] = re.findall(r"\[\+\]\s*(\S+)", txt)[:80]
         rec["stdout_tail"] = re.sub(r"\s+", " ", (p2.stdout or ""))[-500:]
         out["results"].append(rec)
     (work / "maigret_report.json").write_text(json.dumps(out, indent=1))

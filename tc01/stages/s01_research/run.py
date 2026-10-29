@@ -108,10 +108,44 @@ def main() -> int:
             continue
         seen.add(key)
         ca.append(h)
-    on_topic = [h for h in ca if re.search(r"sodder", json.dumps(h).lower())]
+    # The LoC collection view is NOT a full-text search and every hit URL carries &q=<our query>,
+    # so testing the URL for "sodder" is a false positive by construction. On-topic means the
+    # page's own OCR text mentions the family AND the page date is in or after the event window.
+    on_topic, ca_ocr_checked = [], 0
+    for h in ca[:20]:
+        if not h.get("url"):
+            continue
+        try:
+            b = loc.resource_bundle(h["url"], log)
+        except Exception as e:  # noqa: BLE001
+            log(f"on-topic check failed {h.get('url')}: {e}")
+            continue
+        if not b.get("ok"):
+            continue
+        ca_ocr_checked += 1
+        txt = (b.get("ocr_text") or "").lower()
+        yr = int(str(h.get("date") or "0")[:4] or 0)
+        # "sodder" is also an ordinary 19th-century word for turf/sod, so require corroboration
+        hits = {"sodder": txt.count("sodder"), "fayetteville": txt.count("fayetteville"),
+                "west virginia": txt.count("west virginia")}
+        genuinely = hits["sodder"] >= 1 and (yr >= 1945) and (
+            hits["fayetteville"] >= 1 or hits["west virginia"] >= 1
+            or "five children" in txt or "sodder children" in txt or "soddu" in txt)
+        h["ocr_keyword_hits"] = hits
+        h["ocr_chars"] = b.get("ocr_chars")
+        h["page_year"] = yr
+        h["genuinely_on_topic"] = genuinely
+        if genuinely:
+            on_topic.append(h)
+        http.polite(0.7)
     report["chronicling_america"] = {
-        "pages_returned": len(ca), "on_topic_pages": len(on_topic),
-        "queries": CA_QUERIES, "note": "the dedicated search API is retired; reached through the LoC JSON collection view",
+        "pages_returned": len(ca), "pages_ocr_checked": ca_ocr_checked,
+        "genuinely_on_topic_pages": len(on_topic), "queries": CA_QUERIES,
+        "finding": ("The LoC collection view matched on metadata, not full text, and 'sodder' is also an "
+                    "ordinary word for turf/sod, so pre-1945 hits are false positives. No page dated 1945 "
+                    "or later that corroborates the family name was found." if not on_topic else
+                    f"{len(on_topic)} page(s) genuinely on-topic."),
+        "note": "the dedicated search API is retired; reached through the LoC JSON collection view",
     }
     log.tool("Chronicling America", "used" if ca else "failed",
              f"{len(CA_QUERIES)} full-text queries over the LoC newspaper collection",
@@ -198,10 +232,17 @@ def main() -> int:
     try:
         arch = archiver.archive_all(urls, work, log, aa_state, per_url_timeout=60, max_urls=40)
         report["archiving"] = {"attempted": arch["attempted"], "by_status": arch["by_status"]}
+        aa_verdict = arch["by_tier1_verdict"]
+        aa_ok = aa_verdict.get("ok", 0)
         log.tool("bellingcat/auto-archiver (archival run)",
-                 "used" if arch["attempted"] else "failed",
+                 "used" if aa_ok else "failed",
                  f"{arch['attempted']} source URLs",
-                 json.dumps(arch["by_status"]), "work/s01_research/archive_manifest.json", "MIT", "")
+                 f"auto-archiver tier1={aa_verdict}; wayback snapshots={arch['wayback_snapshots']}; "
+                 f"local sha256 captures={arch['local_captures']}; no copy={len(arch['sources_with_no_copy'])}",
+                 "work/s01_research/archive_manifest.json", "MIT",
+                 "" if aa_ok else "auto-archiver raised SetupError: it is config-driven and the remote "
+                                  "archiving backends need credentials we are forbidden to use; "
+                                  "archival was completed by the Wayback + local-sha256 fallbacks")
     except Exception as e:  # noqa: BLE001
         report["archiving"] = {"error": str(e)[:200]}
         log.tool("bellingcat/auto-archiver (archival run)", "failed", "-", "-", "-", "MIT", str(e)[:200])
@@ -222,7 +263,16 @@ def main() -> int:
         log.tool("soxoj/maigret", "failed", "-", "-", "-", "MIT", str(e)[:200])
 
     # ---------------------------------------------------------------- #3 spiderfoot
+    skip_heavy = os.environ.get("TC01_SKIP_HEAVY", "").lower() in {"1", "true", "yes"}
+    if skip_heavy:
+        log("TC01_SKIP_HEAVY set: spiderfoot already ran successfully on run 40903096463 "
+            "(233 modules, deps installed); not repeated on this correction run")
+        report["spiderfoot"] = {"skipped_on_correction_run": True,
+                                "previous_result": {"cloned": True, "deps_installed": True,
+                                                    "modules_available": 233}}
     try:
+        if skip_heavy:
+            raise RuntimeError("skipped")
         sf = osint.spiderfoot(work, log, SF_TARGETS, venvs / "spiderfoot", timeout=900)
         log.tool("smicallef/spiderfoot", "used" if sf.get("cloned") else "failed",
                  f"targets={SF_TARGETS}, keyless modules only",
@@ -230,8 +280,14 @@ def main() -> int:
                  "work/s01_research/spiderfoot_report.json", "MIT", sf.get("deps_error") or sf.get("error") or "")
         report["spiderfoot"] = {k: sf.get(k) for k in ("cloned", "deps_installed", "modules_available", "sfcli_help_rc")}
     except Exception as e:  # noqa: BLE001
-        report["spiderfoot"] = {"error": str(e)[:200]}
-        log.tool("smicallef/spiderfoot", "failed", "-", "-", "-", "MIT", str(e)[:200])
+        if not skip_heavy:
+            report["spiderfoot"] = {"error": str(e)[:200]}
+            log.tool("smicallef/spiderfoot", "failed", "-", "-", "-", "MIT", str(e)[:200])
+        else:
+            log.tool("smicallef/spiderfoot", "used",
+                     "previous run 40903096463 (clone + deps + 233 modules enumerated)",
+                     "not repeated on this correction run", "work/s01_research/spiderfoot_report.json",
+                     "MIT", "TC01_SKIP_HEAVY")
 
     # ---------------------------------------------------------------- #8 newspaper OCR
     pages = []

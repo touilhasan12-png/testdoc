@@ -67,6 +67,16 @@ jobs:
             echo "no run.py for ${TC01_STAGE}"; exit 3
           fi
 
+      - name: Prune bulky clones and venvs before the artifact upload
+        if: always()
+        run: |
+          set +e
+          du -sh work 2>/dev/null
+          rm -rf work/venvs work/*/repos 2>/dev/null
+          find work -type d -name node_modules -prune -exec rm -rf {} + 2>/dev/null
+          find work -type f -size +12M -printf 'DROPPED(bulk) %p %s\n' -delete 2>/dev/null
+          du -sh work 2>/dev/null
+
       - name: Leak guard on stage output
         if: always()
         run: |
