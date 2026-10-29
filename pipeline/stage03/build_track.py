@@ -60,8 +60,8 @@ def main():
         log(STAGE, "Demucs", f"failed rc={r.returncode}: {(r.stderr or '')[-300:]}")
 
     trimmed = os.path.join(out, "03_narration_trimmed.wav")
-    r2 = subprocess.run([sys.executable, "-m", "auto_editor", (cleaned if demucs_ok else raw),
-                         "--output", trimmed, "--silent-threshold", "0.05", "--margin", "0.12s"],
+    r2 = subprocess.run(["auto-editor", (cleaned if demucs_ok else raw),
+                         "--output", trimmed, "--edit", "audio:threshold=0.04", "--margin", "0.12sec"],
                         capture_output=True, text=True, timeout=3600)
     trim_ok = r2.returncode == 0 and os.path.exists(trimmed)
     log(STAGE, "auto-editor", f"rc={r2.returncode} out_exists={os.path.exists(trimmed)}")
