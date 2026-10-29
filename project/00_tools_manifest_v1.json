@@ -20,8 +20,9 @@
    "REMOVED_LICENCE": 6,
    "REMOVED_KEY": 4
   },
-  "note": "status values: KEPT | KEPT_KEYLESS | REMOVED_LICENCE | REMOVED_KEY | NOT_FOUND. Runtime results (used/failed/skipped + artefact links) are appended by tc01/lib/manifest_log.py after each stage and are never edited by hand.",
-  "runtime": []
+  "note": "status values: KEPT | KEPT_KEYLESS | REMOVED_LICENCE | REMOVED_KEY | NOT_FOUND. 'substitute' is the keyless commercial-clean replacement the agent supplies for every removed tool. Runtime results (used/failed/skipped + artefact links) are appended by the stage runs and are never edited by hand.",
+  "runtime": [],
+  "owner_policy_applied_at": "2026-10-29"
  },
  "tools": [
   {
@@ -34,7 +35,8 @@
    "license_expected": "CC0/NOASSERTION",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "shallow-clone the list, parse into a source registry"
+   "run_mode": "shallow-clone the list, parse into a source registry",
+   "substitute": null
   },
   {
    "n": 2,
@@ -46,7 +48,8 @@
    "license_expected": "MIT",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "CLI --top-sites off, json/txt reports"
+   "run_mode": "CLI --top-sites off, json/txt reports",
+   "substitute": null
   },
   {
    "n": 3,
@@ -59,7 +62,8 @@
    "commercial": "ok",
    "status": "KEPT_KEYLESS",
    "run_mode": "run headless via sfcli or module import",
-   "reason": "key modules disabled; keyless modules only (dns/whois/hosts)"
+   "reason": "key modules disabled; keyless modules only (dns/whois/hosts)",
+   "substitute": null
   },
   {
    "n": 4,
@@ -71,7 +75,8 @@
    "license_expected": "none-declared",
    "commercial": "unknown",
    "status": "KEPT",
-   "run_mode": "parse the markdown into a verification checklist applied to every claim"
+   "run_mode": "parse the markdown into a verification checklist applied to every claim",
+   "substitute": null
   },
   {
    "n": 5,
@@ -83,7 +88,8 @@
    "license_expected": "MIT",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "fallback to local WARC/screenshot capture if archive.org write is rate-limited"
+   "run_mode": "fallback to local WARC/screenshot capture if archive.org write is rate-limited",
+   "substitute": null
   },
   {
    "n": 6,
@@ -95,7 +101,8 @@
    "license_expected": "public-domain",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "JSON API + IIIF/PDF page images"
+   "run_mode": "JSON API + IIIF/PDF page images",
+   "substitute": null
   },
   {
    "n": 7,
@@ -108,7 +115,8 @@
    "commercial": "ok",
    "status": "KEPT",
    "run_mode": "run as stdio MCP; direct LoC JSON API as fallback",
-   "reason": "exact name absent; closest match used"
+   "reason": "exact name absent; closest match used",
+   "substitute": null
   },
   {
    "n": 8,
@@ -121,7 +129,8 @@
    "commercial": "unknown",
    "status": "KEPT_KEYLESS",
    "run_mode": "clone and drive its tesseract pipeline",
-   "reason": "Tesseract path only; Google Vision disabled (needs GCP key)"
+   "reason": "Tesseract path only; Google Vision disabled (needs GCP key)",
+   "substitute": null
   },
   {
    "n": 9,
@@ -134,7 +143,8 @@
    "commercial": "ok",
    "status": "KEPT_KEYLESS",
    "run_mode": "read its agent/graph definitions and execute the roles directly",
-   "reason": "no external LLM key: the agent acts as the LLM inside its graph structure"
+   "reason": "no external LLM key: the agent acts as the LLM inside its graph structure",
+   "substitute": null
   },
   {
    "n": 10,
@@ -146,7 +156,8 @@
    "license_expected": "MIT",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "Pixar 22 rules / Story Spine / causality applied to the beat sheet"
+   "run_mode": "Pixar 22 rules / Story Spine / causality applied to the beat sheet",
+   "substitute": null
   },
   {
    "n": 11,
@@ -158,8 +169,9 @@
    "license_expected": "-",
    "commercial": "-",
    "status": "NOT_FOUND",
-   "run_mode": "SUBSTITUTE: tc01/stages/s02/diagnose.py (agent-authored diagnostic)",
-   "reason": "no repository of this name that diagnoses screenplays exists on GitHub"
+   "run_mode": "n/a \u2014 removed",
+   "reason": "no repository of this name that diagnoses screenplays exists on GitHub",
+   "substitute": "tc01/stages/s02/diagnose.py (agent-authored diagnostic)"
   },
   {
    "n": 12,
@@ -171,7 +183,8 @@
    "license_expected": "Apache-2.0",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "headless via Playwright on its HTML studio, or port its parsing rules"
+   "run_mode": "headless via Playwright on its HTML studio, or port its parsing rules",
+   "substitute": null
   },
   {
    "n": 13,
@@ -183,7 +196,8 @@
    "license_expected": "MIT",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "node/ts run to score the cut against the script"
+   "run_mode": "node/ts run to score the cut against the script",
+   "substitute": null
   },
   {
    "n": 14,
@@ -196,7 +210,8 @@
    "commercial": "ok",
    "status": "KEPT",
    "run_mode": "isolated venv, CPU, short clips only",
-   "reason": "no voice cloning of any real person (ethics rule)"
+   "reason": "no voice cloning of any real person (ethics rule)",
+   "substitute": null
   },
   {
    "n": 15,
@@ -209,7 +224,8 @@
    "commercial": "ok",
    "status": "KEPT",
    "run_mode": "isolated venv, CPU",
-   "reason": "English output only - no Arabic inside the video"
+   "reason": "English output only - no Arabic inside the video",
+   "substitute": null
   },
   {
    "n": 16,
@@ -221,7 +237,8 @@
    "license_expected": "MIT",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "isolated venv, CPU, short generations"
+   "run_mode": "isolated venv, CPU, short generations",
+   "substitute": null
   },
   {
    "n": 17,
@@ -233,7 +250,8 @@
    "license_expected": "Apache-2.0",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "CPU: short loops, low step count, small config"
+   "run_mode": "CPU: short loops, low step count, small config",
+   "substitute": null
   },
   {
    "n": 18,
@@ -245,8 +263,9 @@
    "license_expected": "MIT code / gated weights",
    "commercial": "conditional",
    "status": "REMOVED_LICENCE",
-   "run_mode": "SUBSTITUTE: tc01/lib/synth_bed.py + Pedalboard (agent-authored, fully owned)",
-   "reason": "weights are gated on HuggingFace and need licence acceptance (an account gate)"
+   "run_mode": "n/a \u2014 removed",
+   "reason": "weights are gated on HuggingFace and need licence acceptance (an account gate)",
+   "substitute": "tc01/lib/synth_bed.py + Pedalboard (agent-authored, fully owned)"
   },
   {
    "n": 19,
@@ -258,7 +277,8 @@
    "license_expected": "MIT",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "CPU, short segments"
+   "run_mode": "CPU, short segments",
+   "substitute": null
   },
   {
    "n": 20,
@@ -270,8 +290,9 @@
    "license_expected": "MIT client",
    "commercial": "ok",
    "status": "REMOVED_KEY",
-   "run_mode": "SUBSTITUTE: Wikimedia Commons + Archive.org audio (keyless) + tc01/lib/synth_sfx.py",
-   "reason": "needs Freesound client_id + client_secret"
+   "run_mode": "n/a \u2014 removed",
+   "reason": "needs Freesound client_id + client_secret",
+   "substitute": "Wikimedia Commons + Archive.org audio (keyless) + tc01/lib/synth_sfx.py"
   },
   {
    "n": 21,
@@ -283,8 +304,9 @@
    "license_expected": "MIT",
    "commercial": "ok",
    "status": "REMOVED_KEY",
-   "run_mode": "SUBSTITUTE: dropped with #20; same keyless path covers it",
-   "reason": "needs the same Freesound key"
+   "run_mode": "n/a \u2014 removed",
+   "reason": "needs the same Freesound key",
+   "substitute": "dropped with #20; same keyless path covers it"
   },
   {
    "n": 22,
@@ -296,7 +318,8 @@
    "license_expected": "MIT",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "CPU, htdemucs default model"
+   "run_mode": "CPU, htdemucs default model",
+   "substitute": null
   },
   {
    "n": 23,
@@ -308,7 +331,8 @@
    "license_expected": "GPL-3.0",
    "commercial": "ok-copyleft",
    "status": "KEPT",
-   "run_mode": "run as a separate process; never linked into a deliverable"
+   "run_mode": "run as a separate process; never linked into a deliverable",
+   "substitute": null
   },
   {
    "n": 24,
@@ -320,7 +344,8 @@
    "license_expected": "MIT",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "parsed into the music prompt sheet"
+   "run_mode": "parsed into the music prompt sheet",
+   "substitute": null
   },
   {
    "n": 25,
@@ -332,7 +357,8 @@
    "license_expected": "MIT",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "headless Playwright on the client-side app; output labelled 'Re-created'"
+   "run_mode": "headless Playwright on the client-side app; output labelled 'Re-created'",
+   "substitute": null
   },
   {
    "n": 26,
@@ -344,7 +370,8 @@
    "license_expected": "none-declared",
    "commercial": "unknown",
    "status": "KEPT",
-   "run_mode": "used as a tool only, nothing vendored"
+   "run_mode": "used as a tool only, nothing vendored",
+   "substitute": null
   },
   {
    "n": 27,
@@ -356,7 +383,8 @@
    "license_expected": "NOASSERTION",
    "commercial": "unknown",
    "status": "KEPT",
-   "run_mode": "only the ageing stage is used"
+   "run_mode": "only the ageing stage is used",
+   "substitute": null
   },
   {
    "n": 28,
@@ -369,7 +397,8 @@
    "commercial": "ok",
    "status": "KEPT_KEYLESS",
    "run_mode": "headless render; fallback tc01/lib/geo_render.py over the same tiles",
-   "reason": "no Mapbox token: keyless dark CARTO basemap or a token-free custom style"
+   "reason": "no Mapbox token: keyless dark CARTO basemap or a token-free custom style",
+   "substitute": null
   },
   {
    "n": 29,
@@ -381,7 +410,8 @@
    "license_expected": "GPL-2.0",
    "commercial": "ok-copyleft",
    "status": "KEPT",
-   "run_mode": "qgis_process / PyQGIS, separate process"
+   "run_mode": "qgis_process / PyQGIS, separate process",
+   "substitute": null
   },
   {
    "n": 30,
@@ -393,8 +423,9 @@
    "license_expected": "BSD-2-Clause",
    "commercial": "ok",
    "status": "REMOVED_KEY",
-   "run_mode": "SUBSTITUTE: Wikimedia Commons geolocated photos + Archive.org stills, labelled 'Archival photo'",
-   "reason": "needs a Mapillary API token"
+   "run_mode": "n/a \u2014 removed",
+   "reason": "needs a Mapillary API token",
+   "substitute": "Wikimedia Commons geolocated photos + Archive.org stills, labelled 'Archival photo'"
   },
   {
    "n": 31,
@@ -406,7 +437,8 @@
    "license_expected": "MPL-2.0",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "timeline JSON authored, HTML built, screenshot headless"
+   "run_mode": "timeline JSON authored, HTML built, screenshot headless",
+   "substitute": null
   },
   {
    "n": 32,
@@ -418,7 +450,8 @@
    "license_expected": "Apache-2.0",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "charts library + D3 headless to SVG/PNG"
+   "run_mode": "charts library + D3 headless to SVG/PNG",
+   "substitute": null
   },
   {
    "n": 33,
@@ -430,7 +463,8 @@
    "license_expected": "MIT",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "inspect at run time; drive headless and screenshot"
+   "run_mode": "inspect at run time; drive headless and screenshot",
+   "substitute": null
   },
   {
    "n": 34,
@@ -442,7 +476,8 @@
    "license_expected": "none-declared",
    "commercial": "unknown",
    "status": "KEPT",
-   "run_mode": "FastAPI+spaCy backend headless; Cytoscape rendered via Playwright"
+   "run_mode": "FastAPI+spaCy backend headless; Cytoscape rendered via Playwright",
+   "substitute": null
   },
   {
    "n": 35,
@@ -454,8 +489,9 @@
    "license_expected": "MPL-2.0 + non-commercial pretrained models",
    "commercial": "noncommercial",
    "status": "REMOVED_LICENCE",
-   "run_mode": "SUBSTITUTE: COLMAP (colmap/colmap, BSD-3-Clause), CPU CLI",
-   "reason": "pretrained models are non-commercial"
+   "run_mode": "n/a \u2014 removed",
+   "reason": "pretrained models are non-commercial",
+   "substitute": "COLMAP (colmap/colmap, BSD-3-Clause), CPU CLI"
   },
   {
    "n": 36,
@@ -467,7 +503,8 @@
    "license_expected": "none-declared",
    "commercial": "unknown",
    "status": "KEPT",
-   "run_mode": "JS platform driven headless; output labelled 'Reenactment'"
+   "run_mode": "JS platform driven headless; output labelled 'Reenactment'",
+   "substitute": null
   },
   {
    "n": 37,
@@ -479,8 +516,9 @@
    "license_expected": "Apache-2.0 code, non-commercial weights",
    "commercial": "noncommercial",
    "status": "REMOVED_LICENCE",
-   "run_mode": "SUBSTITUTE: IOPaint (#40) cleanup + FFmpeg hqdn3d/unsharp/cas detail recovery",
-   "reason": "weights restricted to non-commercial use"
+   "run_mode": "n/a \u2014 removed",
+   "reason": "weights restricted to non-commercial use",
+   "substitute": "IOPaint (#40) cleanup + FFmpeg hqdn3d/unsharp/cas detail recovery"
   },
   {
    "n": 38,
@@ -492,8 +530,9 @@
    "license_expected": "BSD-3-Clause, non-commercial weights",
    "commercial": "noncommercial",
    "status": "REMOVED_LICENCE",
-   "run_mode": "SUBSTITUTE: FFmpeg two-step lanczos upscale + unsharp + cas",
-   "reason": "README restricts the pretrained models to non-commercial use"
+   "run_mode": "n/a \u2014 removed",
+   "reason": "README restricts the pretrained models to non-commercial use",
+   "substitute": "FFmpeg two-step lanczos upscale + unsharp + cas"
   },
   {
    "n": 39,
@@ -505,7 +544,8 @@
    "license_expected": "MIT",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "every output labelled 'Colourised reconstruction'"
+   "run_mode": "every output labelled 'Colourised reconstruction'",
+   "substitute": null
   },
   {
    "n": 40,
@@ -517,7 +557,8 @@
    "license_expected": "Apache-2.0",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "also carries the face-cleanup substitute for #37"
+   "run_mode": "also carries the face-cleanup substitute for #37",
+   "substitute": null
   },
   {
    "n": 41,
@@ -529,7 +570,8 @@
    "license_expected": "AGPL-3.0",
    "commercial": "ok-copyleft",
    "status": "KEPT",
-   "run_mode": "separate process; nothing linked into a deliverable"
+   "run_mode": "separate process; nothing linked into a deliverable",
+   "substitute": null
   },
   {
    "n": 42,
@@ -542,7 +584,8 @@
    "commercial": "ok",
    "status": "KEPT_KEYLESS",
    "run_mode": "keyless sources only, licences recorded per asset",
-   "reason": "Pexels/Pixabay disabled (need keys); Wikimedia/Openverse/Archive.org only"
+   "reason": "Pexels/Pixabay disabled (need keys); Wikimedia/Openverse/Archive.org only",
+   "substitute": null
   },
   {
    "n": 43,
@@ -554,7 +597,8 @@
    "license_expected": "LGPL/GPL",
    "commercial": "ok-copyleft",
    "status": "KEPT",
-   "run_mode": "system ffmpeg on the runner"
+   "run_mode": "system ffmpeg on the runner",
+   "substitute": null
   },
   {
    "n": 44,
@@ -566,7 +610,8 @@
    "license_expected": "MIT",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "needs ffmpeg"
+   "run_mode": "needs ffmpeg",
+   "substitute": null
   },
   {
    "n": 45,
@@ -578,8 +623,9 @@
    "license_expected": "source-available, paid tier above 3 staff",
    "commercial": "conditional",
    "status": "REMOVED_LICENCE",
-   "run_mode": "SUBSTITUTE: FFmpeg drawtext/overlay title builds, or Motion Canvas (MIT) if a Node render is required",
-   "reason": "paid licence required for companies with 4+ staff"
+   "run_mode": "n/a \u2014 removed",
+   "reason": "paid licence required for companies with 4+ staff",
+   "substitute": "FFmpeg drawtext/overlay title builds, or Motion Canvas (MIT) if a Node render is required"
   },
   {
    "n": 46,
@@ -591,7 +637,8 @@
    "license_expected": "Unlicense",
    "commercial": "ok",
    "status": "KEPT",
-   "run_mode": "pip install auto-editor"
+   "run_mode": "pip install auto-editor",
+   "substitute": null
   },
   {
    "n": 47,
@@ -603,7 +650,8 @@
    "license_expected": "none-declared",
    "commercial": "unknown",
    "status": "KEPT",
-   "run_mode": "used as a tool only, nothing vendored"
+   "run_mode": "used as a tool only, nothing vendored",
+   "substitute": null
   },
   {
    "n": 48,
@@ -615,7 +663,8 @@
    "license_expected": "none-declared",
    "commercial": "unknown",
    "status": "KEPT",
-   "run_mode": "browser workstation driven headless to export the .cube, applied with ffmpeg lut3d"
+   "run_mode": "browser workstation driven headless to export the .cube, applied with ffmpeg lut3d",
+   "substitute": null
   },
   {
    "n": 49,
@@ -627,8 +676,9 @@
    "license_expected": "All Rights Reserved, patent pending",
    "commercial": "noncommercial",
    "status": "REMOVED_LICENCE",
-   "run_mode": "SUBSTITUTE: tc01/lib/lut_from_reference.py (agent-authored .cube extraction)",
-   "reason": "all rights reserved"
+   "run_mode": "n/a \u2014 removed",
+   "reason": "all rights reserved",
+   "substitute": "tc01/lib/lut_from_reference.py (agent-authored .cube extraction)"
   },
   {
    "n": 50,
@@ -640,8 +690,9 @@
    "license_expected": "none-declared",
    "commercial": "unknown",
    "status": "REMOVED_KEY",
-   "run_mode": "SUBSTITUTE: tc01/stages/s12/grade_report.py from ffmpeg signalstats/histogram",
-   "reason": "needs a Google Gemini API key"
+   "run_mode": "n/a \u2014 removed",
+   "reason": "needs a Google Gemini API key",
+   "substitute": "tc01/stages/s12/grade_report.py from ffmpeg signalstats/histogram"
   }
  ]
 }

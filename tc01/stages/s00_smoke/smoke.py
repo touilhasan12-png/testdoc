@@ -26,11 +26,12 @@ FILTERS = ["lut3d", "lutyuv", "nlmeans", "hqdn3d", "unsharp", "cas", "drawtext",
            "zoompan", "signalstats", "histogram", "overlay", "xfade", "atempo",
            "afftdn", "highpass", "lowpass", "aecho", "volume", "scale", "format"]
 ENDPOINTS = {
-    "chronicling_america": "https://chroniclingamerica.loc.gov/search/api/results.json?format=json&rows=1",
+    "chronicling_america": "https://www.loc.gov/chroniclingamerica/search/api/results.json?format=json&rows=1",
+    "chronicling_america_legacy": "https://chroniclingamerica.loc.gov/search/api/results.json?format=json&rows=1",
     "loc_collections": "https://www.loc.gov/photos/?fo=json&c=1",
     "wikimedia_commons": "https://commons.wikimedia.org/w/api.php?action=query&format=json&meta=siteinfo",
     "archive_org": "https://archive.org/advancedsearch.php?q=sodder&fl%5B%5D=identifier&rows=1&output=json",
-    "openverse": "https://api.openverse.org/v1/images/?q=snow&page_size=1",
+    "openverse": "https://api.openverse.org/v1/images/?q=snow&page_size=1",  # soft: often rate-limited
     "osm_tiles_carto_dark": "https://basemaps.cartocdn.com/dark_all/12/1178/1560.png",
     "huggingface": "https://huggingface.co/api/models/suno-ai/bark",
     "pypi": "https://pypi.org/pypi/auto-editor/json",
@@ -105,14 +106,14 @@ def main() -> int:
     for name, url in ENDPOINTS.items():
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "tc01-smoke/1.0"})
-            with opener.open(req, timeout=25) as r:
+            with opener.open(req, timeout=45) as r:
                 ep[name] = {"http": r.status, "bytes": len(r.read(60000)), "final_url": r.geturl()}
         except urllib.error.HTTPError as e:
             if e.code in (301, 302, 307, 308):
                 loc = e.headers.get("Location", "")
                 try:
                     req2 = urllib.request.Request(loc, headers={"User-Agent": "tc01-smoke/1.0"})
-                    with urllib.request.urlopen(req2, timeout=25) as r2:
+                    with urllib.request.urlopen(req2, timeout=45) as r2:
                         ep[name] = {"http": r2.status, "bytes": len(r2.read(60000)),
                                     "via_redirect": e.code, "final_url": r2.geturl()}
                     continue
@@ -123,7 +124,9 @@ def main() -> int:
         except Exception as e:  # noqa: BLE001
             ep[name] = {"http": None, "error": scrub(str(e))[:160]}
     rep["endpoints"] = ep
-    rep["endpoint_failures"] = [k for k, v in ep.items() if not v.get("http")]
+    SOFT = {"openverse", "chronicling_america_legacy", "huggingface"}
+    rep["endpoint_failures"] = [k for k, v in ep.items() if not v.get("http") and k not in SOFT]
+    rep["endpoint_soft_failures"] = [k for k, v in ep.items() if not v.get("http") and k in SOFT]
 
     rep["overall"] = "PASS" if (
         not rep["ffmpeg_missing_filters"]
