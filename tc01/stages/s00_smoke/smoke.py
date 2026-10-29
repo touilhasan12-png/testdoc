@@ -26,8 +26,10 @@ FILTERS = ["lut3d", "lutyuv", "nlmeans", "hqdn3d", "unsharp", "cas", "drawtext",
            "zoompan", "signalstats", "histogram", "overlay", "xfade", "atempo",
            "afftdn", "highpass", "lowpass", "aecho", "volume", "scale", "format"]
 ENDPOINTS = {
-    "chronicling_america": "https://www.loc.gov/chroniclingamerica/search/api/results.json?format=json&rows=1",
-    "chronicling_america_legacy": "https://chroniclingamerica.loc.gov/search/api/results.json?format=json&rows=1",
+    # the legacy search/api/results.json endpoint is retired (308 -> 404). The live keyless paths are:
+    "chronicling_america_newspapers": "https://www.loc.gov/newspapers/?fo=json&c=1",
+    "chronicling_america_search_api": "https://www.loc.gov/chroniclingamerica/search/api/results.json?format=json&rows=1",
+    "loc_search": "https://www.loc.gov/search/?q=fayetteville&fo=json&c=1",
     "loc_collections": "https://www.loc.gov/photos/?fo=json&c=1",
     "wikimedia_commons": "https://commons.wikimedia.org/w/api.php?action=query&format=json&meta=siteinfo",
     "archive_org": "https://archive.org/advancedsearch.php?q=sodder&fl%5B%5D=identifier&rows=1&output=json",
@@ -94,39 +96,42 @@ def main() -> int:
     rep["ffmpeg_filters"] = filt
     rep["ffmpeg_missing_filters"] = [k for k, v in filt.items() if not v]
 
-    # 5. endpoints (stdlib only, no key, no credential)
+    # 5. endpoints (stdlib only, no key, no credential).
+    #    Every endpoint is ALWAYS recorded: earlier versions silently dropped entries whose
+    #    HTTPError was not a redirect, which made the report lie by omission. Fixed here.
+    import urllib.error
     import urllib.request
-    ep = {}
 
-    class _NoRedirect(urllib.request.HTTPRedirectHandler):
-        def redirect_request(self, req, fp, code, msg, headers, newurl):
-            raise urllib.error.HTTPError(req.full_url, code, f"redirect -> {newurl}", headers, fp)
-
-    opener = urllib.request.build_opener(_NoRedirect)
-    for name, url in ENDPOINTS.items():
+    def _probe(url: str, timeout: int = 40) -> dict:
+        req = urllib.request.Request(url, headers={"User-Agent": "tc01-smoke/1.0 (research pilot)"})
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "tc01-smoke/1.0"})
-            with opener.open(req, timeout=45) as r:
-                ep[name] = {"http": r.status, "bytes": len(r.read(60000)), "final_url": r.geturl()}
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return {"http": r.status, "bytes": len(r.read(60000)), "final_url": r.geturl()}
         except urllib.error.HTTPError as e:
-            if e.code in (301, 302, 307, 308):
-                loc = e.headers.get("Location", "")
-                try:
-                    req2 = urllib.request.Request(loc, headers={"User-Agent": "tc01-smoke/1.0"})
-                    with urllib.request.urlopen(req2, timeout=45) as r2:
-                        ep[name] = {"http": r2.status, "bytes": len(r2.read(60000)),
-                                    "via_redirect": e.code, "final_url": r2.geturl()}
-                    continue
-                except Exception as e2:  # noqa: BLE001
-                    ep[name] = {"http": None, "error": scrub(str(e2))[:160], "via_redirect": e.code,
-                                "redirect_to": loc}
-                    continue
-        except Exception as e:  # noqa: BLE001
-            ep[name] = {"http": None, "error": scrub(str(e))[:160]}
+            loc = (e.headers or {}).get("Location", "")
+            rec = {"http": e.code, "error": f"HTTP {e.code}"}
+            if loc:
+                rec["redirect_to"] = loc
+                rec["followed"] = _probe(loc, timeout)
+            return rec
+        except BaseException as e:  # noqa: BLE001 - always record, never drop
+            return {"http": None, "error": scrub(f"{type(e).__name__}: {e}")[:180]}
+
+    ep = {}
+    for name, url in ENDPOINTS.items():
+        ep[name] = _probe(url)
+        print(f"endpoint {name}: {ep[name].get('http')} {ep[name].get('error', '')}", flush=True)
+
+    def _ok(rec: dict) -> bool:
+        if isinstance(rec.get("http"), int) and rec["http"] < 400:
+            return True
+        f = rec.get("followed")
+        return bool(f and isinstance(f.get("http"), int) and f["http"] < 400)
+
+    SOFT = {"openverse", "chronicling_america_search_api", "huggingface"}
     rep["endpoints"] = ep
-    SOFT = {"openverse", "chronicling_america_legacy", "huggingface"}
-    rep["endpoint_failures"] = [k for k, v in ep.items() if not v.get("http") and k not in SOFT]
-    rep["endpoint_soft_failures"] = [k for k, v in ep.items() if not v.get("http") and k in SOFT]
+    rep["endpoint_failures"] = [k for k, v in ep.items() if not _ok(v) and k not in SOFT]
+    rep["endpoint_soft_failures"] = [k for k, v in ep.items() if not _ok(v) and k in SOFT]
 
     rep["overall"] = "PASS" if (
         not rep["ffmpeg_missing_filters"]

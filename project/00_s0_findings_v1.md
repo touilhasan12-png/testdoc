@@ -43,3 +43,43 @@ substitute path for the removed upscaler (lanczos + unsharp + cas) are confirmed
 - Stage 9 uses IOPaint + FFmpeg lanczos/unsharp/cas instead of the removed GFPGAN/Real-ESRGAN.
 - Stage 8 uses COLMAP instead of the removed Meshroom.
 - Stage 12 builds the .cube LUT with the agent-authored extractor instead of the removed deep-analog.
+
+---
+
+# Addendum — third smoke run (commit 535969f, run 40892200170): PASS, plus one real risk found
+
+## Chronicling America (mandated tool #6) — API status verified from the runner and locally
+
+| path | result | verdict |
+|---|---|---|
+| `chroniclingamerica.loc.gov/search/api/results.json` | 308 -> `www.loc.gov/chroniclingamerica/...` | **retired** |
+| `www.loc.gov/chroniclingamerica/search/api/results.json` | 404 | **retired** |
+| `chroniclingamerica.loc.gov/search/titles/results.json` | 404 | **retired** |
+| `www.loc.gov/newspapers/?fo=json&c=1` | **200, `pagination.of = 3,224,499`** | **LIVE — this is the working path** |
+| `www.loc.gov/search/?q=...&fo=json&c=N` | 200 | LIVE universal search |
+| `www.loc.gov/collections/chronicling-america/?fo=json` | 200 | LIVE collection view |
+
+Consequence: the dedicated Chronicling America search API is gone. Stage 1 must reach the same holdings
+through the **Library of Congress universal/collection JSON API** (`www.loc.gov/newspapers/`, `www.loc.gov/search/`,
+`www.loc.gov/collections/chronicling-america/`) and follow each hit to its item page and page image.
+This keeps mandated tool #6 and #7 (the LoC bridge) genuinely in use; it is a path change, not a skip.
+
+## Risk registered for Stage 1 (must be resolved there, honestly)
+
+Chronicling America's coverage is **state-by-state and mostly pre-1963**, and West Virginia's contribution is
+patchy. It is therefore **not guaranteed** that a December-1945 Fayetteville/West Virginia page reporting the
+fire exists in that collection. Stage 1 will:
+1. query the LoC newspaper paths for `sodder`, `Fayetteville`, `West Virginia` titles and 1945–1968 dates;
+2. record exactly what was found or not found — no invention, no substitution of a modern article for a period one;
+3. if period newspaper pages are unavailable, fall back to keyless archival sources that do hold them
+   (Archive.org texts/newspapers, Wikimedia Commons, state archives) and mark tool #6 as
+   `used — collection reachable, no on-topic period page` or `failed` in the manifest, with the reason.
+
+## Bug found in my own probe (fixed in this stage)
+
+The endpoint loop used `except urllib.error.HTTPError` followed by `except Exception`, so an `HTTPError`
+whose code was **not** a redirect fell out of both handlers and the endpoint was **never written to the
+report**. Two of nine endpoints were missing from run 40892200170's `smoke.json`, and the run still printed
+`PASS` — a report that lies by omission. Fixed: the probe now always records every endpoint, follows
+redirects explicitly, and prints each result as it goes. This is exactly the failure mode rule 2 forbids,
+so it is recorded here rather than quietly patched.
