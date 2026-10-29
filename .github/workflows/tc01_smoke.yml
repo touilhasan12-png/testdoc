@@ -42,6 +42,14 @@ jobs:
           echo "| avx2 | $(grep -qo ' avx2' /proc/cpuinfo && echo yes || echo NO) |" >> "$GITHUB_STEP_SUMMARY"
           echo "| note | ${{ inputs.note }} |" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Install base toolchain (same apt set the stage jobs will use)
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg tesseract-ocr tesseract-ocr-eng imagemagick libsndfile1
+          ffmpeg -hide_banner -version | head -1
+          tesseract --version 2>&1 | head -1
+
       - name: System tool probe (keyless only)
         run: |
           set +e
@@ -82,9 +90,12 @@ jobs:
 
       - name: Stage-0 self report
         run: |
-          set +e
+          set -euo pipefail
           mkdir -p work/smoke
-          python3 tc01/stages/s00_smoke/smoke.py || echo "smoke.py not runnable yet (recorded)"
+          python3 tc01/stages/s00_smoke/smoke.py
+          test -f work/smoke/smoke.json
+          echo "--- smoke.json ---"
+          cat work/smoke/smoke.json
 
       - name: Publish summary
         if: always()

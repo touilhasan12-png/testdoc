@@ -17,7 +17,8 @@ import socket
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))   # repo root
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tc01"))       # tc01/
 from lib.shared import REPO, WORK, now, read_json, run, scrub, which, write_json  # noqa: E402
 
 STAGE = "smoke"
@@ -95,11 +96,30 @@ def main() -> int:
     # 5. endpoints (stdlib only, no key, no credential)
     import urllib.request
     ep = {}
+
+    class _NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            raise urllib.error.HTTPError(req.full_url, code, f"redirect -> {newurl}", headers, fp)
+
+    opener = urllib.request.build_opener(_NoRedirect)
     for name, url in ENDPOINTS.items():
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "tc01-smoke/1.0"})
-            with urllib.request.urlopen(req, timeout=25) as r:
-                ep[name] = {"http": r.status, "bytes": len(r.read(60000))}
+            with opener.open(req, timeout=25) as r:
+                ep[name] = {"http": r.status, "bytes": len(r.read(60000)), "final_url": r.geturl()}
+        except urllib.error.HTTPError as e:
+            if e.code in (301, 302, 307, 308):
+                loc = e.headers.get("Location", "")
+                try:
+                    req2 = urllib.request.Request(loc, headers={"User-Agent": "tc01-smoke/1.0"})
+                    with urllib.request.urlopen(req2, timeout=25) as r2:
+                        ep[name] = {"http": r2.status, "bytes": len(r2.read(60000)),
+                                    "via_redirect": e.code, "final_url": r2.geturl()}
+                    continue
+                except Exception as e2:  # noqa: BLE001
+                    ep[name] = {"http": None, "error": scrub(str(e2))[:160], "via_redirect": e.code,
+                                "redirect_to": loc}
+                    continue
         except Exception as e:  # noqa: BLE001
             ep[name] = {"http": None, "error": scrub(str(e))[:160]}
     rep["endpoints"] = ep
