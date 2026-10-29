@@ -1,0 +1,92 @@
+name: tc01-pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "s01_research | s02_script | s04_music | s05_docs | s06_maps | s07_board | s08_recon | s09_restore | s10_footage | s11_edit | s12_grade"
+        required: true
+        default: "s01_research"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tc01-${{ inputs.stage }}
+  cancel-in-progress: false
+
+env:
+  TC01_STAGE: ${{ inputs.stage }}
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Base system deps
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg tesseract-ocr tesseract-ocr-eng \
+            fonts-dejavu-core fonts-liberation2 imagemagick jq curl \
+            libsndfile1 espeak-ng xvfb libgl1 libglib2.0-0
+
+      - name: Base python deps
+        run: |
+          set -euo pipefail
+          python -m pip install -q --upgrade pip
+          python -m pip install -q requests pillow numpy pyyaml soundfile \
+            tqdm beautifulsoup4 lxml pandas scipy
+
+      - name: Stage-specific deps
+        run: |
+          set +e
+          f="tc01/stages/${TC01_STAGE}/requirements.txt"
+          if [ -f "$f" ]; then
+            echo "installing $f"
+            python -m pip install -q -r "$f"
+          else
+            echo "no stage requirements file for ${TC01_STAGE}"
+          fi
+
+      - name: Run stage
+        run: |
+          set -euo pipefail
+          mkdir -p "work/${TC01_STAGE}" work/logs
+          python3 "tc01/stages/${TC01_STAGE}/run.py" 2>&1 | tee "work/logs/${TC01_STAGE}.log"
+
+      - name: Leak guard on stage output
+        if: always()
+        run: |
+          set +e
+          if grep -rIlE 'github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{36}' work/ 2>/dev/null; then
+            echo "credential pattern detected in work/ - scrubbing"; grep -rIlE 'github_pat_|ghp_' work/ | xargs -r rm -f
+          else
+            echo "leak guard: clean"
+          fi
+
+      - name: Stage summary
+        if: always()
+        run: |
+          set +e
+          {
+            echo "## ${TC01_STAGE}"
+            echo '```'
+            cat "work/${TC01_STAGE}/MANIFEST.txt" 2>/dev/null || echo "(no MANIFEST.txt)"
+            echo '```'
+            echo "### files"
+            find work -type f | sort | head -200
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tc01_${{ inputs.stage }}
+          path: work/
+          if-no-files-found: warn

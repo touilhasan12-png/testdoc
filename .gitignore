@@ -1,0 +1,40 @@
+# --- credentials: never commit, never print ---
+.secrets/
+*.token
+*_token
+gh_token
+*.pem
+*.key
+.netrc
+.env
+.env.*
+
+# --- runtime output (published as Actions artefacts instead) ---
+work/
+runs/
+*.log
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+
+# --- bulky intermediates ---
+*.wav
+*.mp3
+*.mp4
+*.mov
+*.cube
+*.ply
+*.obj
+*.png
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+*.pdf
+!project/assets/**/*.png
+__pycache__/
+*.py[cod]
+.pytest_cache/
+DS_Store

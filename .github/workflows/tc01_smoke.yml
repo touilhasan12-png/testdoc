@@ -1,0 +1,105 @@
+name: tc01-smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "free-text note for this run"
+        required: false
+        default: "runner smoke test"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tc01-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Runner capability report
+        run: |
+          set -euo pipefail
+          echo "## runner" >> "$GITHUB_STEP_SUMMARY"
+          echo "| item | value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| cpus | $(nproc) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| ram | $(free -g | awk '/^Mem/{print $2" GB"}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| disk | $(df -h / | awk 'NR==2{print $4" free"}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| arch | $(uname -m) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| os | $(. /etc/os-release; echo "$PRETTY_NAME") |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| python | $(python3 -V 2>&1) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| avx | $(grep -qo ' avx' /proc/cpuinfo && echo yes || echo NO) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| avx2 | $(grep -qo ' avx2' /proc/cpuinfo && echo yes || echo NO) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| note | ${{ inputs.note }} |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: System tool probe (keyless only)
+        run: |
+          set +e
+          mkdir -p work/smoke
+          for c in ffmpeg ffprobe git curl jq convert tesseract espeak-ng node npm java glxinfo xvfb-run; do
+            if command -v "$c" >/dev/null 2>&1; then
+              printf '%-12s PRESENT  %s\n' "$c" "$(command -v $c)" | tee -a work/smoke/system_tools.txt
+            else
+              printf '%-12s ABSENT\n' "$c" | tee -a work/smoke/system_tools.txt
+            fi
+          done
+          ffmpeg -hide_banner -version 2>/dev/null | head -1 | tee -a work/smoke/system_tools.txt || true
+          ffmpeg -hide_banner -filters 2>/dev/null | grep -E ' (lut3d|nlmeans|hqdn3d|unsharp|cas|drawtext|zoompan|signalstats|histogram) ' \
+            | tee -a work/smoke/ffmpeg_filters.txt || true
+
+      - name: Credential-leak guard (must find nothing tracked)
+        run: |
+          set -euo pipefail
+          bad=0
+          if git grep -IlE 'github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{36}|AKIA[0-9A-Z]{16}' -- . 2>/dev/null; then bad=1; fi
+          if git ls-files | grep -Ei '(^|/)\.secrets/|\.token$|gh_token$|^\.env' ; then bad=1; fi
+          if [ "$bad" = 1 ]; then echo "LEAK GUARD: CREDENTIAL PATTERN FOUND IN TRACKED FILES"; exit 1; fi
+          echo "LEAK GUARD: clean - no credential pattern in any tracked file"
+
+      - name: Outbound network probe (keyless endpoints only)
+        run: |
+          set +e
+          : > work/smoke/network.txt
+          for u in https://chroniclingamerica.loc.gov/search/api/results.json \
+                   https://www.loc.gov/collections/?fo=json \
+                   https://commons.wikimedia.org/w/api.php \
+                   https://archive.org/advancedsearch.php \
+                   https://api.openverse.org/v1/ \
+                   https://huggingface.co ; do
+            code=$(curl -s -o /dev/null -m 20 -w '%{http_code}' "$u")
+            printf '%-62s %s\n' "$u" "$code" | tee -a work/smoke/network.txt
+          done
+
+      - name: Stage-0 self report
+        run: |
+          set +e
+          mkdir -p work/smoke
+          python3 tc01/stages/s00_smoke/smoke.py || echo "smoke.py not runnable yet (recorded)"
+
+      - name: Publish summary
+        if: always()
+        run: |
+          set +e
+          {
+            echo; echo "## system tools"; echo '```'; cat work/smoke/system_tools.txt 2>/dev/null; echo '```'
+            echo; echo "## ffmpeg filters needed by the grade stage"; echo '```'; cat work/smoke/ffmpeg_filters.txt 2>/dev/null; echo '```'
+            echo; echo "## outbound network"; echo '```'; cat work/smoke/network.txt 2>/dev/null; echo '```'
+            echo; echo "## stage-0 report"; echo '```'; cat work/smoke/smoke.json 2>/dev/null; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tc01_s00_smoke
+          path: work/smoke/
+          if-no-files-found: warn
