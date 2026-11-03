@@ -8,7 +8,7 @@ const Opening:React.FC=()=>{
  const x=(139.6917-124)/26*1920,y=(47-35.6895)/19*1403;
  return <AbsoluteFill style={{background:'#030b11',fontFamily:'Arial, sans-serif',color:'#f1eee4',overflow:'hidden'}}>
   <AbsoluteFill style={{transform:`translate(${-t*.035}px, ${-145-t*.018}px) scale(${zoom})`,transformOrigin:'55% 55%',height:1403}}>
-   <Img src={staticFile('japan.jpg')} style={{width:1920,height:1403,filter:'brightness(.27) saturate(.4) contrast(1.2)'}}/>
+   <Img src={staticFile('japan.jpg')} style={{width:1920,height:1403,filter:'brightness(.65) saturate(.45) contrast(1.0)'}}/>
    <svg width="1920" height="1403" style={{position:'absolute',inset:0}}>
     <defs><radialGradient id="city"><stop stopColor="#ffedb1" stopOpacity=".9"/><stop offset=".18" stopColor="#ffb24e" stopOpacity=".7"/><stop offset="1" stopColor="#ed8126" stopOpacity="0"/></radialGradient></defs>
     <g stroke="#aac2c7" strokeWidth="1" opacity=".09">{[0,1,2,3,4,5,6].map(i=><path key={i} d={`M ${i*320} 0 V1403 M0 ${i*240} H1920`}/>)}</g>
