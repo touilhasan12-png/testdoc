@@ -66,6 +66,13 @@ jobs:
           path: parts
           merge-multiple: true
 
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          ffmpeg -version | head -1
+          ffprobe -version | head -1
+
       - name: Build pad + SFX beds
         run: node scripts/make-audio.mjs
 
