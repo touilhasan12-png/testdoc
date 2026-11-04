@@ -100,7 +100,7 @@ for s in tl['shots']:
     assert any(abs(a[j]-b[j]) > 1e-6 for j in range(1, 6)), 'start == end in ' + s['id']
     lv = sorted({l for f in range(s['f0'], s['f1']+1, 3) for (l, _, _) in tiles_for(cam_at(s, f))})
     lib = LIB.get(s['id'], ('—', ''))
-    w(f"| **{s['id']}** · f{s['f0']}–{s['f1']} ({tc(s['f0'])}–{tc(s['f1'])}) | {DESC[s['id']]} | GSI Japan seamless photo tiles z{lv[0]}–z{lv[-1]} · © Geospatial Information Authority of Japan (GSI standard terms, CC BY 4.0-compatible) · `public/tiles/` | f{s['f0']}: {fmtcam(a)} → f{s['f1']}: {fmtcam(b)} · {m} · {len(ks)} keys, {ch} direction changes | {lib[0]} | {lib[1]} | {CUTS.get(s['id'], '—')} |")
+    w(f"| **{s['id']}** · f{s['f0']}–{s['f1']} ({tc(s['f0'])}–{tc(s['f1'])}) | {DESC[s['id']]} | GSI Japan seamless photo tiles z{lv[0]}–z{lv[-1]} · © Geospatial Information Authority of Japan (GSI standard terms, CC BY 4.0-compatible); no-data ocean pixels filled from NASA GIBS Blue Marble Next Generation (open NASA data) · `public/tiles/` | f{s['f0']}: {fmtcam(a)} → f{s['f1']}: {fmtcam(b)} · {m} · {len(ks)} keys, {ch} direction changes | {lib[0]} | {lib[1]} | {CUTS.get(s['id'], '—')} |")
 
 w('\n## 2. Camera table (machine-checked: start ≠ end on every map shot; smooth monotone cubic Hermite, no shake)\n')
 w('| Shot | Frames | Seconds | Motion | Start (lon, lat, zoom, pitch, bearing) | End | Max pitch |')
@@ -145,6 +145,7 @@ for f, g, ids in P: w(f"| `{f}` | {g} | " + '; '.join(f"`{i}` {rng(i)}" for i in
 
 w('\n## 6. Real satellite base — source, licence, resolution\n')
 w('- **Imagery**: GSI Japan "seamlessphoto" XYZ tiles, `https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg` (low zoom = satellite mosaic, high zoom = aerial orthophoto). © 国土地理院 / Geospatial Information Authority of Japan; use under the Government of Japan Standard Terms of Use (compatible with CC BY 4.0), credit shown on screen on every frame.')
+w('- **No-data fill**: GSI has no imagery over much of the Pacific at low zoom (flat RGB 53,53,53). Only those pixels are replaced with NASA EOSDIS GIBS WMTS `BlueMarble_NextGeneration` (GoogleMapsCompatible_Level8, open NASA data, credit on screen) by `scripts/merge_basemap.py`; 621 tiles touched (`src/data/gibs-filled.txt`).')
 w('- **Resolution**: 256×256 px tiles, z2–z17 (≈ 150 km/px at z2 … ≈ 1 m/px at z17 near Tokyo). Tiles are downloaded **once** by `scripts/fetch_assets.py` for exactly the camera paths, re-encoded (JPEG q55) and committed in `public/tiles/` (manifest `src/data/tile-manifest.json`) — **no network access at render time**.')
 w('- **Boundaries/overlays**: geoBoundaries gbOpen JPN ADM1 (ODbL) and ADM2 (CC BY-SA 2.0), derived from OpenStreetMap (Wambacher), release commit `9469f09`; simplified with shapely (`scripts/build_geo.py`). Credit "© OpenStreetMap contributors via geoBoundaries" on screen.')
 w('- Overlays (borders, arrows, rings, numbers) are programmed above the imagery; the ground itself is real imagery everywhere.\n')

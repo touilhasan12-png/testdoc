@@ -21,7 +21,7 @@ const useFonts = () => {
   }, [handle]);
 };
 
-const CREDIT = 'IMAGERY: GSI Japan (Geospatial Information Authority of Japan) seamless photo · BOUNDARIES: © OpenStreetMap contributors via geoBoundaries (ODbL / CC BY-SA 2.0)';
+const CREDIT = 'IMAGERY: GSI Japan seamless photo (Geospatial Information Authority of Japan) + NASA GIBS Blue Marble (ocean fill) · BOUNDARIES: © OpenStreetMap contributors via geoBoundaries (ODbL / CC BY-SA 2.0)';
 
 const SourceBar: React.FC = () => {
   const {frame} = useStage();

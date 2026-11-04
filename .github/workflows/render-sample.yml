@@ -39,7 +39,7 @@ jobs:
           import json, os, sys
           sys.path.insert(0, 'scripts')
           from camlib import plan_tiles
-          need = plan_tiles()
+          need = plan_tiles(1)
           missing = [t for t in need if not os.path.exists(f'public/tiles/{t[0]}/{t[1]}/{t[2]}.jpg')]
           print('tiles needed', len(need), 'missing', len(missing))
           sys.exit(1 if missing else 0)

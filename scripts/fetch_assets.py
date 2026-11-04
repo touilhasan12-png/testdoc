@@ -8,7 +8,7 @@ from camlib import plan_tiles, ROOT
 
 OUT = os.path.join(ROOT, 'public/tiles')
 URL = 'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg'
-need = sorted(plan_tiles())
+need = sorted(plan_tiles(1))
 print('planned', len(need))
 sess = requests.Session()
 
