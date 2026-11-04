@@ -157,9 +157,9 @@ export const StackBar: React.FC<{local: number; segs: Seg[]; width: number; heig
           const cx = ((x0 + s.value / 2) / total) * width;
           const big = s.value / total > 0.2;
           return (
-            <div key={i} style={{position: 'absolute', left: cx, top: 14, transform: 'translateX(-50%)', textAlign: 'center', opacity: clamp01((local - 14 - i * 5) / 10), width: big ? 330 : 190}}>
-              <div style={{fontSize: big ? 44 : 30, fontWeight: 900, color: s.hot ? C.redSoft : C.cream, textShadow: s.hot ? GLOW : '0 2px 6px #000'}}>{s.text}</div>
-              <div style={{fontSize: big ? 21 : 17, fontWeight: 750, letterSpacing: 1.2, color: 'rgba(255,245,236,.88)', textTransform: 'uppercase'}}>{s.label}</div>
+            <div key={i} style={{position: 'absolute', left: cx + (big ? 0 : (i % 2 ? 62 : -62)), top: 14, transform: 'translateX(-50%)', textAlign: 'center', opacity: clamp01((local - 14 - i * 5) / 10), width: big ? 330 : 150}}>
+              <div style={{fontSize: big ? 44 : 28, fontWeight: 900, color: s.hot ? C.redSoft : C.cream, textShadow: s.hot ? GLOW : '0 2px 6px #000'}}>{s.text}</div>
+              <div style={{fontSize: big ? 21 : 15, fontWeight: 750, letterSpacing: 1.2, color: 'rgba(255,245,236,.88)', textTransform: 'uppercase'}}>{s.label}</div>
             </div>
           );
         })}

@@ -20,18 +20,35 @@ def basemap_tile(z, x, y):
     n = 256 // s if s <= 256 else 1
     px, py = (x % s) * 256 // s, (y % s) * 256 // s
     return t.crop((px, py, px + 256 // s, py + 256 // s)).resize((256, 256), Image.BICUBIC)
-changed = 0; log = []
-for f in sorted(glob.glob(os.path.join(ROOT, 'public/tiles/*/*/*.jpg'))):
-    z, x, y = [int(p) for p in f[:-4].split('/')[-3:]]
-    im = Image.open(f).convert('RGB'); a = np.asarray(im).astype(int)
+files = sorted(glob.glob(os.path.join(ROOT, 'public/tiles/*/*/*.jpg')))
+def parse(f): return [int(p) for p in f[:-4].split('/')[-3:]]
+def flat_mask(a):
     flat = (np.abs(a - 53).max(2) <= 7)
-    if flat.mean() < 0.002: continue
-    flat = ndimage.binary_opening(flat, iterations=1) | (ndimage.binary_closing(flat, iterations=2) & flat)
-    m = ndimage.binary_dilation(flat, iterations=2)
-    m = ndimage.gaussian_filter(m.astype(float), 1.2)[..., None]
+    return ndimage.binary_opening(flat, iterations=1) | (ndimage.binary_closing(flat, iterations=2) & flat)
+# pass 1: colour gain so that the Blue Marble fill matches GSI ocean tone next to it
+ratios = []
+for f in files:
+    z, x, y = parse(f)
+    a = np.asarray(Image.open(f).convert('RGB')).astype(float)
+    fl = flat_mask(a)
+    if not (0.1 < fl.mean() < 0.9): continue
+    valid = ~ndimage.binary_dilation(fl, iterations=6)
     b = np.asarray(basemap_tile(z, x, y)).astype(float)
+    sel = valid & (a.mean(2) < 70) & (b.mean(2) < 70)
+    if sel.sum() > 800: ratios.append(a[sel].mean(0) / np.maximum(b[sel].mean(0), 1))
+gain = np.clip(np.median(np.array(ratios), axis=0), 1.0, 4.0) if ratios else np.ones(3)
+print('colour gain', gain.round(2), 'from', len(ratios), 'tiles')
+changed = 0; log = []
+for f in files:
+    z, x, y = parse(f)
+    a = np.asarray(Image.open(f).convert('RGB')).astype(float)
+    fl = flat_mask(a)
+    if fl.mean() < 0.002: continue
+    m = ndimage.binary_dilation(fl, iterations=4)
+    m = ndimage.gaussian_filter(m.astype(float), 1.5)[..., None]
+    b = np.asarray(basemap_tile(z, x, y)).astype(float) * gain
     out = a * (1 - m) + b * m
-    Image.fromarray(out.clip(0, 255).astype(np.uint8)).save(f, quality=60)
+    Image.fromarray(out.clip(0, 255).astype(np.uint8)).save(f, quality=62)
     changed += 1; log.append(f'{z}/{x}/{y}')
 print('tiles filled with NASA GIBS:', changed)
 open(os.path.join(ROOT, 'src/data/gibs-filled.txt'), 'w').write('\n'.join(log))

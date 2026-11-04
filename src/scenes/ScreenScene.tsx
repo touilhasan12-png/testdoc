@@ -199,7 +199,7 @@ const Unit4: React.FC = () => (
 const Unit5: React.FC = () => {
   const {frame: f, cam} = useStage();
   const visible = f >= 3242 && f < 4040;
-  const level = f < 3300 ? 'JAPAN' : f < 3400 ? 'KANTŌ' : f < 3698 ? 'TOKYO · 23 WARDS' : f < 3990 ? 'SHINJUKU' : 'JAPAN';
+  const level = f < 3300 ? 'JAPAN' : f < 3400 ? 'KANTŌ' : f < 3698 ? 'TOKYO · 23 WARDS' : f < 3984 ? 'SHINJUKU' : f < 4004 ? 'TOKYO' : f < 4024 ? 'KANTŌ' : 'JAPAN';
   const mpp = metersPerPx(cam);
   const target = mpp * 240;
   const nice = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000].reduce((b, v) => (Math.abs(v - target) < Math.abs(b - target) ? v : b), 10);
@@ -209,7 +209,7 @@ const Unit5: React.FC = () => {
     <>
       {visible ? (
         <div style={{position: 'absolute', left: 100, top: 96, fontFamily: FONT, color: C.cream, opacity: clamp01((f - 3242) / 12) * (1 - prog(f, 4020, 4040))}}>
-          <div style={{fontSize: 22, fontWeight: 700, letterSpacing: 4, color: C.yellow}}>DIVING IN</div>
+          <div style={{fontSize: 22, fontWeight: 700, letterSpacing: 4, color: C.yellow}}>{f >= 3984 ? 'ZOOMING OUT' : 'DIVING IN'}</div>
           <div style={{fontSize: 62, fontWeight: 900, letterSpacing: -1, textShadow: GLOW, lineHeight: 1.05}}>{level}</div>
           <div style={{marginTop: 16, display: 'flex', alignItems: 'center', gap: 14}}>
             <div style={{width: barPx, height: 10, borderLeft: '4px solid #fff', borderRight: '4px solid #fff', borderBottom: '4px solid #fff', boxShadow: '0 0 10px #000'}} />
@@ -444,7 +444,7 @@ const Unit8: React.FC = () => {
             </div>
           )}
         </Float07>
-        <Float07 id="halve" x={1030} y={520} vx={-14} vy={-10} rx={5} ry={-7}>
+        <Float07 id="halve" x={1090} y={520} vx={-14} vy={-10} rx={5} ry={-7}>
           {(l) => (
             <Columns
               local={l}
@@ -549,7 +549,7 @@ const Kicker: React.FC = () => {
   const out = prog(f, f0 + dur - 6, f0 + dur);
   const dim = f >= 7186 && f < 7470; // above the paper block
   return (
-    <div style={{position: 'absolute', right: 60, top: 58, fontFamily: FONT, fontSize: 30, fontWeight: 800, letterSpacing: 1.2, color: C.cream, textTransform: 'uppercase', background: 'rgba(5,10,16,.80)', padding: '10px 22px 11px', borderRadius: 6, borderRight: `6px solid ${C.yellow}`, opacity: e * (1 - out) * (dim ? 0.95 : 1), transform: `translateX(${(1 - e) * 40 - out * 20}px)`, boxShadow: '0 8px 24px rgba(0,0,0,.45)', whiteSpace: 'nowrap'}}>
+    <div style={{position: 'absolute', right: 60, top: 58, fontFamily: FONT, fontSize: dim ? 25 : 30, fontWeight: 800, letterSpacing: dim ? 0.6 : 1.2, color: C.cream, textTransform: 'uppercase', background: 'rgba(5,10,16,.80)', padding: '10px 22px 11px', borderRadius: 6, borderRight: `6px solid ${C.yellow}`, opacity: e * (1 - out) * (dim ? 0.95 : 1), transform: `translateX(${(1 - e) * 40 - out * 20}px)`, boxShadow: '0 8px 24px rgba(0,0,0,.45)', whiteSpace: 'nowrap'}}>
       {text}
     </div>
   );
@@ -557,7 +557,6 @@ const Kicker: React.FC = () => {
 
 export const ScreenScene: React.FC = () => (
   <>
-    <Kicker />
     <Unit1 />
     <Unit2 />
     <Unit3 />
@@ -567,5 +566,6 @@ export const ScreenScene: React.FC = () => (
     <Unit7 />
     <Unit8 />
     <Unit9 />
+    <Kicker />
   </>
 );
