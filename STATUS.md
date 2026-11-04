@@ -7,3 +7,4 @@ Updated: 2026-11-04 (local)
 - Workflow `render-sample.yml`: mode `stills` (QA frames) or `full` (10 × 900-frame chunks, mux, verify).
 - Next: push → stills run → fix visual issues → full render → verify → report.
 - No render has been produced yet. No token is stored anywhere in this repo.
+- BLOCKED: GH_TOKEN is not present in the shell environment (GitHub API returned 401 Bad credentials with empty token). Local commit 1f38fd2 is ready; waiting for the token to push.
