@@ -1,0 +1,26 @@
+{
+  "name": "tokyo-map-sample",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Long-form 16:9 map documentary sample (first 300 s, 9000 frames @30fps)",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "audio": "node scripts/make-audio.mjs",
+    "render:chunk": "remotion render src/index.ts Sample out/chunk.mp4 --muted --codec=h264 --concurrency=2",
+    "studio": "remotion studio src/index.ts"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.540",
+    "@svg-maps/japan": "2.0.0",
+    "d3-geo": "3.1.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.540"
+  },
+  "devDependencies": {
+    "@types/d3-geo": "3.1.0",
+    "@types/react": "18.3.12",
+    "@types/node": "20.17.6",
+    "typescript": "5.6.3"
+  }
+}

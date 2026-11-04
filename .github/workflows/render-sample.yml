@@ -1,0 +1,80 @@
+name: render-sample
+
+# Renders the 300 s / 9000-frame sample only. Full-script rendering is not part of this workflow.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: render-sample-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  render:
+    name: render frames ${{ matrix.part }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: true
+      matrix:
+        part: [0, 1, 2, 3, 4, 5]   # 6 chunks x 1500 frames = 9000 frames
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Render frame range ${{ matrix.part }}
+        run: |
+          START=$(( ${{ matrix.part }} * 1500 ))
+          END=$(( START + 1499 ))
+          mkdir -p out
+          npx remotion render src/index.ts Sample "out/part-${{ matrix.part }}.mp4" \
+            --frames=${START}-${END} --muted --codec=h264 --concurrency=4 --log=warn
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: part-${{ matrix.part }}
+          path: out/part-${{ matrix.part }}.mp4
+          if-no-files-found: error
+          retention-days: 3
+
+  assemble:
+    name: assemble + verify sample
+    needs: render
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: part-*
+          path: parts
+          merge-multiple: true
+
+      - name: Build pad + SFX beds
+        run: node scripts/make-audio.mjs
+
+      - name: Concat, mix VO 01-09, verify
+        run: bash scripts/assemble-sample.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: testdoc-sample-300s
+          path: out/final/testdoc-sample-300s.mp4
+          if-no-files-found: error
+          retention-days: 7

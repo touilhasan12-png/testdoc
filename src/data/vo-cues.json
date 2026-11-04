@@ -1,0 +1,11 @@
+[
+  {"file": "assets/vo/01-coldopen.mp3", "startMs": 800},
+  {"file": "assets/vo/02-act1-arrows.mp3", "startMs": 34900},
+  {"file": "assets/vo/03-act1-fertility.mp3", "startMs": 60000},
+  {"file": "assets/vo/04-act1-paradox.mp3", "startMs": 85200},
+  {"file": "assets/vo/05-space-dive.mp3", "startMs": 106933},
+  {"file": "assets/vo/06-space-akiya.mp3", "startMs": 134667},
+  {"file": "assets/vo/07-time.mp3", "startMs": 162700},
+  {"file": "assets/vo/08-machine.mp3", "startMs": 205033},
+  {"file": "assets/vo/09-blackhole.mp3", "startMs": 257000}
+]
