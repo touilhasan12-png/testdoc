@@ -28,8 +28,11 @@ jobs:
       - run: npm ci
       - name: Type check
         run: npm run typecheck
-      - name: Python deps
-        run: pip install numpy scipy pillow shapely
+      - name: ffmpeg + Python deps
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          ffmpeg -version | head -1
+          pip install numpy scipy pillow shapely
       - name: Verify every planned tile is in the repo (no network at render time)
         run: |
           python3 - <<'PY'
@@ -138,8 +141,11 @@ jobs:
         with:
           name: audio
           path: out/audio
-      - name: Python deps
-        run: pip install numpy scipy pillow
+      - name: ffmpeg + Python deps
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          ffmpeg -version | head -1
+          pip install numpy scipy pillow
       - name: Concatenate chunks (stream copy) and mux the mixed audio
         run: |
           mkdir -p out
