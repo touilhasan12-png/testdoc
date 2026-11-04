@@ -63,9 +63,9 @@ def tiles_for(cam):
         n = 2**l
         x0 = math.floor((cx-hx/s)/256); x1 = math.floor((cx+hx/s)/256)
         y0 = math.floor((cy-hy/s)/256); y1 = math.floor((cy+hy/s)/256)
-        for x in range(max(0, x0), min(n-1, x1)+1):
+        for x in range(x0, x1+1):
             for y in range(max(0, y0), min(n-1, y1)+1):
-                out.add((l, x, y))
+                out.add((l, x % n, y))
     return out
 
 def plan_tiles(step=2):

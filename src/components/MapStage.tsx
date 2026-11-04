@@ -13,17 +13,18 @@ const Tiles: React.FC = () => {
     const s = 2 ** (cam.z - l);
     const [cx, cy] = worldPx(cam.lon, cam.lat, l);
     const n = 2 ** l;
-    const x0 = Math.max(0, Math.floor((cx - hx / s) / 256));
-    const x1 = Math.min(n - 1, Math.floor((cx + hx / s) / 256));
+    const x0 = Math.floor((cx - hx / s) / 256);
+    const x1 = Math.floor((cx + hx / s) / 256);
     const y0 = Math.max(0, Math.floor((cy - hy / s) / 256));
     const y1 = Math.min(n - 1, Math.floor((cy + hy / s) / 256));
     for (let x = x0; x <= x1; x++) {
       for (let y = y0; y <= y1; y++) {
-        const key = `${l}/${x}/${y}`;
+        const wx = ((x % n) + n) % n; // wrap across the antimeridian
+        const key = `${l}/${wx}/${y}`;
         if (!TILE_SET.has(key)) continue;
         out.push(
           <Img
-            key={key}
+            key={`${l}/${x}/${y}`}
             src={staticFile(`tiles/${key}.jpg`)}
             style={{
               position: 'absolute',
