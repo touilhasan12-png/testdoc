@@ -25,6 +25,7 @@ def parse(f): return [int(p) for p in f[:-4].split('/')[-3:]]
 def flat_mask(a):
     flat = (np.abs(a - 53).max(2) <= 7)
     blk = ndimage.binary_opening(a.max(2) <= 4, iterations=3)  # pure-black no-data (z9+ Pacific)
+    if blk.mean() < 0.15: blk = np.zeros_like(blk)  # small dark patches are real imagery, keep
     flat = ndimage.binary_opening(flat, iterations=1) | (ndimage.binary_closing(flat, iterations=2) & flat) | blk
     return flat
 # pass 1: colour gain so that the Blue Marble fill matches GSI ocean tone next to it
@@ -50,7 +51,10 @@ for f in files:
     m = ndimage.gaussian_filter(m.astype(float), 5)[..., None]
     rng = np.random.default_rng(z * 1000003 + x * 1009 + y)  # seeded: deterministic
     nz = ndimage.gaussian_filter(rng.normal(size=(256, 256)), 4); nz = nz / (nz.std() + 1e-9)
-    b = np.asarray(basemap_tile(z, x, y)).astype(float) * gain * (1 + 0.28 * nz)[..., None]
+    b0 = np.asarray(basemap_tile(z, x, y)).astype(float)
+    ocean = ((b0[..., 2] > b0[..., 0] + 6) & (b0[..., 2] >= b0[..., 1])).astype(float)
+    w = (np.clip((70 - b0.mean(2)) / 40, 0, 1) * ndimage.gaussian_filter(ocean, 1.5))[..., None]  # lift only dark ocean, never land
+    b = b0 * (1 + (gain - 1) * w) * (1 + 0.28 * nz * w[..., 0])[..., None]
     out = a * (1 - m) + b * m
     Image.fromarray(out.clip(0, 255).astype(np.uint8)).save(f, quality=62)
     changed += 1; log.append(f'{z}/{x}/{y}')
